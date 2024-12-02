@@ -24,7 +24,7 @@ export function Sidebar({ className }: SidebarProps) {
             )}
         >
             <div className="flex items-center justify-between p-4">
-                {!isCollapsed && <h2 className="text-lg font-semibold">Shadcn Admin</h2>}
+                {!isCollapsed && <h2 className="text-lg font-semibold">Admin Dashboard</h2>}
                 <Button
                     variant="ghost"
                     size="icon"
