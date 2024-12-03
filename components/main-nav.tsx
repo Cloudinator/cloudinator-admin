@@ -26,7 +26,7 @@ export const navItems: NavItem[] = [
     { title: "Backup", href: "/backup", icon: MessageSquare, badge: "8" },
     { title: "Domain", href: "/domain", icon: Box },
     { title: "Users", href: "/users", icon: Users },
-    { title: "Settings", href: "/settings", icon: Cog },
+    { title: "Settings", href: "/account", icon: Cog },
 ]
 
 interface MainNavProps {
