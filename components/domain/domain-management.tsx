@@ -91,8 +91,8 @@ export function DomainManagement() {
                 <h2 className="text-3xl font-bold tracking-tight">Domain Overview</h2>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button>
-                            <Plus className="mr-2 h-4 w-4" />
+                        <Button className="">
+                            <Plus className="mr-2 h-4 w-4 " />
                             Add Domain
                         </Button>
                     </DialogTrigger>
