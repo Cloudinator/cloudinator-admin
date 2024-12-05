@@ -1,34 +1,49 @@
-# Step 1: Use Node.js as the base image
+# Use an official Node.js runtime as a parent image
 FROM node:18-alpine AS builder
 
-# Set the working directory inside the container
+# Install required build tools for sharp
+RUN apk add --no-cache libc6-compat python3 make g++
+
+# Set the working directory to /app
 WORKDIR /app
 
-# Copy package.json and package-lock.json for dependency installation
+# Copy package.json and package-lock.json
 COPY package.json package-lock.json ./
 
-# Install dependencies
-RUN npm install
+# Force dependency resolution during install
+RUN npm install --legacy-peer-deps
 
-# Copy the rest of the application files
+# Install sharp separately
+RUN npm install sharp --legacy-peer-deps
+
+# Copy the rest of the files
 COPY . .
 
-# Build the standalone Next.js application
+# Build the Next.js app
 RUN npm run build
 
-# Step 2: Prepare the production-ready container
-FROM node:18-alpine AS runner
+# Multi-stage build
+FROM node:18-alpine
 
-# Set the working directory inside the container
+# Install dumb-init and create a non-root user
+RUN apk add --no-cache dumb-init && adduser -D nextuser
+
+# Set the working directory to /app
 WORKDIR /app
 
-# Copy the standalone output from the builder stage
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./static
-COPY --from=builder /app/public ./public
+# Copy built files and other necessary artifacts from the builder stage
+COPY --chown=nextuser:nextuser --from=builder /app/public ./public
+COPY --chown=nextuser:nextuser --from=builder /app/.next/standalone ./
+COPY --chown=nextuser:nextuser --from=builder /app/.next/static ./.next/static
+
+# Use non-root user
+USER nextuser
 
 # Expose the application port
 EXPOSE 3000
 
-# Define the command to run the application
-CMD ["node", "server.js"]
+# Set environment variables
+ENV HOST=0.0.0.0 PORT=3000 NODE_ENV=production
+
+# Start the application
+CMD ["dumb-init", "node", "server.js"]
