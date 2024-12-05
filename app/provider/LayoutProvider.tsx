@@ -3,15 +3,24 @@
 import { createContext, useContext, ReactNode } from "react";
 import { ThemeProvider } from "next-themes";
 
-interface LayoutContextProps {
-  // Add any layout-related props here
-}
+// Define the type for the context value
+// Use an empty object type or define properties if needed
+type LayoutContextProps = Record<string, never>; // An empty object type
 
+// Create the context with an appropriate default value
 const LayoutContext = createContext<LayoutContextProps | undefined>(undefined);
 
-export const LayoutProvider = ({ children }: { children: ReactNode }) => {
+// LayoutProvider component props
+interface LayoutProviderProps {
+  children: ReactNode;
+}
+
+export const LayoutProvider: React.FC<LayoutProviderProps> = ({ children }) => {
+  // Initialize context value
+  const layoutContextValue: LayoutContextProps = {}; // Empty object as the context value
+
   return (
-    <LayoutContext.Provider value={{}}>
+    <LayoutContext.Provider value={layoutContextValue}>
       <ThemeProvider
         attribute="class"
         defaultTheme="light"
@@ -24,8 +33,8 @@ export const LayoutProvider = ({ children }: { children: ReactNode }) => {
   );
 };
 
-// Custom hook to access layout context if needed
-export const useLayout = () => {
+// Custom hook to use the LayoutContext
+export const useLayout = (): LayoutContextProps => {
   const context = useContext(LayoutContext);
   if (context === undefined) {
     throw new Error("useLayout must be used within a LayoutProvider");
