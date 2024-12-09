@@ -1,41 +1,121 @@
-# This config was automatically generated from your source code
-# Stacks detected: deps:node:.
+# CircleCI Configuration for Next.js 15 project with Docker build and deploy
 version: 2.1
+
 orbs:
   node: circleci/node@5
+  docker: circleci/docker@2.8.1
+  trivy: cci-labs/trivy@1.0.0
+
+executors:
+  node-executor:
+    docker:
+      - image: cimg/node:20.17.0
+
+  docker-executor:
+    machine:
+      image: ubuntu-2004:current
+
 jobs:
-  build-node:
-    # Build node project
-    executor: node/default
+  build-nextjs:
+    executor: node-executor
     steps:
       - checkout
       - node/install-packages:
           pkg-manager: npm
+          override-ci-command: npm install --force
       - run:
+          name: Set Node.js Environment
+          command: echo 'NODE_ENV=production' >> $BASH_ENV
+
+      - restore_cache:
+          keys:
+            - npm-deps-{{ checksum "package-lock.json" }}
+      - save_cache:
+          key: npm-deps-{{ checksum "package-lock.json" }}
+          paths:
+            - ~/.npm
+
+      - run:
+          name: Build the Next.js project
           command: npm run build
+
       - run:
-          name: Create the ~/artifacts directory if it doesn't exist
-          command: mkdir -p ~/artifacts
-      # Copy output to artifacts dir
-      - run:
-          name: Copy artifacts
-          command: cp -R build dist public .output .next .docusaurus ~/artifacts 2>/dev/null || true
-      - store_artifacts:
-          path: ~/artifacts
-          destination: node-build
-  deploy:
-    # This is an example deploy job, not actually used by the workflow
-    docker:
-      - image: cimg/base:stable
+          name: Prepare Build Artifacts
+          command: |
+            mkdir -p ~/artifacts/.next
+            mkdir -p ~/artifacts/public
+            cp -R .next/* ~/artifacts/.next/ || true
+            cp -R public/* ~/artifacts/public/ || true
+
+      - persist_to_workspace:
+          root: ~/artifacts
+          paths:
+            - .next
+            - public
+
+  scan-dependencies:
+    executor: node-executor
     steps:
-      # Replace this with steps to deploy to users
+      - checkout
+      
+      - node/install-packages:
+          pkg-manager: npm
+          override-ci-command: npm install --force
+
       - run:
-          name: deploy
-          command: '#e.g. ./deploy.sh'
+          name: Install Trivy
+          command: |
+            # Download and install Trivy without sudo
+            curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh -s -- -b $HOME/.local/bin
+
+      - run:
+          name: Add Trivy to PATH
+          command: |
+            echo 'export PATH=$PATH:$HOME/.local/bin' >> $BASH_ENV
+            source $BASH_ENV
+
+      - run:
+          name: Scan Dependencies for Vulnerabilities with Trivy
+          command: |
+            trivy fs --exit-code 1 --severity HIGH,CRITICAL . || true # Adjust severity as needed
+
+  docker-build-and-push:
+    executor: docker-executor
+    steps:
+      - checkout
+
+      - attach_workspace:
+          at: ~/artifacts
+
+      - run:
+          name: Prepare Docker Build Context
+          command: |
+            cp -R ~/artifacts/.next .next
+            cp -R ~/artifacts/public public
+
+      - run:
+          name: Build Docker Image
+          command: |
+            docker build \
+              --build-arg NEXT_BUILD_ID=${CIRCLE_SHA1} \
+              -t vathanaksol/cloudinator-admin:${CIRCLE_SHA1:-latest} .
+
+      - run:
+          name: Docker Login
+          command: |
+            echo "$DOCKERHUB_PASSWORD" | docker login -u "$DOCKERHUB_USERNAME" --password-stdin
+
+      - run:
+          name: Push Docker Image
+          command: |
+            docker push vathanaksol/cloudinator-admin:${CIRCLE_SHA1:-latest}
+
 workflows:
-  build:
+  build-and-deploy:
     jobs:
-      - build-node
-    # - deploy:
-    #     requires:
-    #       - build-node
+      - build-nextjs
+      - scan-dependencies
+      - docker-build-and-push:
+          requires:
+            - build-nextjs
+            - scan-dependencies
