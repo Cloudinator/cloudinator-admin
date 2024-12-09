@@ -1,49 +1,52 @@
 # Use an official Node.js runtime as a parent image
 FROM node:18-alpine AS builder
 
-# Install required build tools for sharp
-RUN apk add --no-cache libc6-compat python3 make g++
+# Install libc6-compat for better compatibility
+RUN apk add --no-cache libc6-compat
 
 # Set the working directory to /app
 WORKDIR /app
 
-# Copy package.json and package-lock.json
-COPY package.json package-lock.json ./
+# Copy package files first for better caching
+COPY package*.json ./
 
-# Force dependency resolution during install
-RUN npm install --legacy-peer-deps
+# Install dependencies with force and allow some potential peer dependency mismatches
+RUN npm install --force
 
-# Install sharp separately
-RUN npm install sharp --legacy-peer-deps
-
-# Copy the rest of the files
+# Copy all project files
 COPY . .
 
-# Build the Next.js app
+# Install sharp with force if needed for image processing
+RUN npm i sharp --force
+
+# Run the next build process and generate the artifacts
 RUN npm run build
 
-# Multi-stage build
+# Multi-stage build process for final image
 FROM node:18-alpine
 
-# Install dumb-init and create a non-root user
-RUN apk add --no-cache dumb-init && adduser -D nextuser
+# Update, upgrade, and add dumb-init for proper signal handling
+RUN apk update && apk upgrade && apk add --no-cache dumb-init && \
+    adduser -D nextuser
 
-# Set the working directory to /app
+# Set work dir as app
 WORKDIR /app
 
-# Copy built files and other necessary artifacts from the builder stage
+# Copy build artifacts with proper ownership
 COPY --chown=nextuser:nextuser --from=builder /app/public ./public
 COPY --chown=nextuser:nextuser --from=builder /app/.next/standalone ./
 COPY --chown=nextuser:nextuser --from=builder /app/.next/static ./.next/static
 
-# Use non-root user
+# Set non-root user
 USER nextuser
 
 # Expose the application port
 EXPOSE 3000
 
 # Set environment variables
-ENV HOST=0.0.0.0 PORT=3000 NODE_ENV=production
+ENV HOST=0.0.0.0 \
+    PORT=3000 \
+    NODE_ENV=production
 
-# Start the application
+# Use dumb-init to handle signal forwarding and process management
 CMD ["dumb-init", "node", "server.js"]
