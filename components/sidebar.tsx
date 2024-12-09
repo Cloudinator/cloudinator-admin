@@ -6,6 +6,7 @@ import { cn } from "@/lib/utils";
 import { PanelLeftClose, PanelRightClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
+import Image from "next/image";
 
 export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -24,7 +25,10 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
         >
           {/* Header */}
           <div className="flex items-center justify-between p-4">
-            {!isCollapsed && <h2 className="text-lg font-semibold">Admin Dashboard</h2>}
+            {!isCollapsed && <div className="text-lg font-semibold flex">
+              <Image src={"/logo/cloudinator.png"} alt="Logo" width={50} height={50} />
+              <h1 className="pt-2 pl-3">Cloudinator</h1>
+              </div>}
             <Button
               variant="ghost"
               size="icon"
