@@ -1,24 +1,24 @@
-"use client"
+"use client";
 
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { Box, Cog, LayoutDashboard, MessageSquare, Plus, Users } from 'lucide-react'
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import { Box, Cog, LayoutDashboard, MessageSquare, Plus, Users } from 'lucide-react';
 
-import { cn } from "@/lib/utils"
-import { Badge } from "@/components/ui/badge"
+import { cn } from "@/lib/utils";
+import { Badge } from "@/components/ui/badge";
 import {
     Tooltip,
     TooltipContent,
     TooltipProvider,
     TooltipTrigger,
-} from "@/components/ui/tooltip"
+} from "@/components/ui/tooltip";
 
-export type NavItem = {
-    title: string
-    href: string
-    icon: React.ComponentType<{ className?: string }>
-    badge?: string
-}
+type NavItem = {
+    title: string;
+    href: string;
+    icon: React.ComponentType<{ className?: string }>;
+    badge?: string;
+};
 
 export const navItems: NavItem[] = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
@@ -27,14 +27,14 @@ export const navItems: NavItem[] = [
     { title: "Domain", href: "/domain", icon: Box },
     { title: "Users", href: "/users", icon: Users },
     { title: "Settings", href: "/account", icon: Cog },
-]
+];
 
 interface MainNavProps {
-    isCollapsed: boolean
+    isCollapsed: boolean;
 }
 
 export function MainNav({ isCollapsed }: MainNavProps) {
-    const pathname = usePathname()
+    const pathname = usePathname();
 
     return (
         <TooltipProvider delayDuration={0}>
@@ -45,8 +45,10 @@ export function MainNav({ isCollapsed }: MainNavProps) {
                             <Link
                                 href={item.href}
                                 className={cn(
-                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-accent",
-                                    pathname === item.href ? "bg-accent text-accent-foreground" : "text-muted-foreground",
+                                    "flex items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors",
+                                    pathname === item.href
+                                        ? "bg-primary text-primary-foreground"
+                                        : "text-muted-foreground hover:bg-primary hover:text-primary-foreground",
                                     isCollapsed ? "justify-center" : "justify-start"
                                 )}
                             >
@@ -75,6 +77,5 @@ export function MainNav({ isCollapsed }: MainNavProps) {
                 ))}
             </nav>
         </TooltipProvider>
-    )
+    );
 }
-

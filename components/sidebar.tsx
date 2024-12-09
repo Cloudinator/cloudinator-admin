@@ -47,9 +47,9 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
           {/* Navigation */}
           <div className="flex-1 overflow-auto">
             <MainNav isCollapsed={isCollapsed} />
-            <div className="ml-[2px]">
+            {/* <div className="ml-[2px]">
                 <ThemeToggle />
-            </div>
+            </div> */}
           </div>
 
           {/* Footer */}
