@@ -41,11 +41,11 @@ COPY --chown=nextuser:nextuser --from=builder /app/.next/static ./.next/static
 USER nextuser
 
 # Expose the application port
-EXPOSE 3001
+EXPOSE 3000
 
 # Set environment variables
 ENV HOST=0.0.0.0 \
-    PORT=3001 \
+    PORT=3000 \
     NODE_ENV=production
 
 # Use dumb-init to handle signal forwarding and process management
