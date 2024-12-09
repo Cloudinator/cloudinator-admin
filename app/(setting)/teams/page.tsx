@@ -1,9 +1,10 @@
+import Team from '@/components/setting/Team'
 import React from 'react'
 
 export default function page() {
   return (
     <div>
-        Teams
+        <Team />
     </div>
   )
 }

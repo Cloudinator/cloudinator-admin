@@ -31,7 +31,8 @@ const SettingPage = () => {
     return (
         <div>
             {/* Top Navigation */}
-            
+            <>
+            </>
             
             <div className="p-8 max-w-4xl">
                 <h1 className="text-2xl font-semibold mb-2">Personal Information</h1>
