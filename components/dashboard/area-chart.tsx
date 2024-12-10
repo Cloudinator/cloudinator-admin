@@ -4,17 +4,17 @@ import { Area, AreaChart as RechartsAreaChart, ResponsiveContainer, Tooltip, XAx
 
 const data = [
     { date: "Apr 15", Success: 4000, Fail: 2400 },
-    { date: "Apr 20", Success: 3000, Fail: 1398 },
-    { date: "Apr 25", Success: 2000, Fail: 9800 },
-    { date: "Apr 30", Success: 2780, Fail: 3908 },
-    { date: "May 5", Success: 1890, Fail: 4800 },
-    { date: "May 10", Success: 2390, Fail: 3800 },
-    { date: "May 15", Success: 3490, Fail: 4300 },
-    { date: "May 20", Success: 2000, Fail: 9800 },
-    { date: "May 25", Success: 2780, Fail: 3908 },
-    { date: "May 30", Success: 1890, Fail: 4800 },
-    { date: "Jun 4", Success: 2390, Fail: 3800 },
-    { date: "Jun 9", Success: 3490, Fail: 4300 },
+    { date: "Apr 20", Success: 4000, Fail: 1998 },
+    { date: "Apr 25", Success: 2800, Fail: 2800 },
+    { date: "Apr 30", Success: 2780, Fail: 3008 },
+    { date: "May 5", Success: 3890, Fail: 3800 },
+    { date: "May 10", Success: 3390, Fail: 3800 },
+    { date: "May 15", Success: 3990, Fail: 4300 },
+    { date: "May 20", Success: 4000, Fail: 2800 },
+    { date: "May 25", Success: 4480, Fail: 3908 },
+    { date: "May 30", Success: 4890, Fail: 2800 },
+    { date: "Jun 4", Success: 4890, Fail: 3800 },
+    { date: "Jun 9", Success: 5490, Fail: 3900 },
 ]
 
 export function AreaChart() {

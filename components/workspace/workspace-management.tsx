@@ -144,10 +144,10 @@ export function WorkspaceManagement() {
                 </div>
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
-                        <Button>
+                        {/* <Button>
                             <Plus className="mr-2 h-4 w-4" />
                             Add Workspace
-                        </Button>
+                        </Button> */}
                     </DialogTrigger>
                     <DialogContent>
                         <DialogHeader>
