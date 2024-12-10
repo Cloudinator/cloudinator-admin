@@ -2,6 +2,7 @@
 
 import { Upload, User } from "lucide-react";
 import { useState } from "react";
+import Image from "next/image";
 // import DashboardSubNavbar from "@/components/navbar/DashboardSubNavbar";
 
 const Setting = () => {
@@ -38,7 +39,8 @@ const Setting = () => {
                     {/* Avatar Section */}
                     <div className="flex items-start space-x-4">
                         <div className="h-20 w-20 rounded-full bg-gray-200 overflow-hidden border border-purple-300">
-                            <img src={avatarSrc} alt="Profile" className="h-full w-full object-cover" />
+                            {/* <img src={avatarSrc} alt="Profile" className="h-full w-full object-cover" /> */}
+                            <Image src={avatarSrc} alt="Profile" className="h-full w-full object-cover" />
                         </div>
                         <div>
                             <button
