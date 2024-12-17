@@ -1,5 +1,5 @@
 import { Metadata } from "next"
-import {UserManagement} from "@/components/user/user-management";
+import {UserManagement} from "@/components/user/UserManagement";
 
 
 export const metadata: Metadata = {
