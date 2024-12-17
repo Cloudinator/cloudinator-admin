@@ -6,8 +6,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Button } from "@/components/ui/button";
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar";
 import { DeleteConfirmationDialog } from "@/components/modal/DeleteConfimation";
-import { UserDetailsModal } from "@/components/user/UserDetailsModal";
 import { User } from "./SearchAndAddUser";
+import { EditUserModal } from "./EditUserModal";
 
 interface UserTableProps {
   users: User[];
@@ -111,14 +111,13 @@ export const UserTable: React.FC<UserTableProps> = ({ users, onDeleteUser, onUpd
       )}
 
       {selectedUser && (
-        <UserDetailsModal
+        <EditUserModal
           isOpen={detailsModalOpen}
           user={selectedUser}
           onUpdate={handleUpdateUser}
           onClose={() => setDetailsModalOpen(false)}
         />
       )}
-
     </>
   );
 };

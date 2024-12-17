@@ -101,7 +101,7 @@ export function UserManagement() {
                     isOpen={!!editingUser}
                     user={editingUser}
                     onClose={() => setEditingUser(null)}
-                    onSave={handleUpdateUser}
+                    onUpdate={handleUpdateUser}
                 />
             )}
 
