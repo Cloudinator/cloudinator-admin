@@ -31,7 +31,7 @@ const Navbar: React.FC = () => {
               key={link.path}
               href={link.path}
               className={`font-medium ${
-                pathname === link.path ? "text-blue-600" : "text-gray-600"
+                pathname === link.path ? "text-primary" : "text-gray-600"
               }`}
             >
               {link.label}
