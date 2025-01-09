@@ -1,9 +1,11 @@
 import { createServiceApi } from './baseApi'
 
 interface User {
-    id: string
-    username: string
-    email: string
+    username: string,
+    email: string,
+    profileImage: string,
+    isEnabled: boolean,
+    roles: string[],
 }
 
 const identityApi = createServiceApi('identity')
@@ -13,15 +15,47 @@ export const userApi = identityApi.injectEndpoints({
         getMe: builder.query<User, void>({
             query: () => 'api/v1/users/me',
         }),
-        updateMe: builder.mutation<User, Partial<User>>({
-            query: (body) => ({
-                url: 'api/v1/users/me',
-                method: 'PATCH',
-                body,
+
+        countUser : builder.query<number, void>({
+            query: () => 'api/v1/users/count',
+        }),
+
+        getAllUserProfile : builder.query<User[], void>({
+            query: () => 'api/v1/users/get-all-users-details',
+        }),
+
+        disableUser: builder.mutation<void, { username: string }>({
+            query: ({ username }) => ({
+                url: `api/v1/users/disable/${username}`,
+                method: 'POST'
+            })
+        }),
+
+
+        enableUser: builder.mutation<void, {username:string}>({
+            query: ({username}) => ({
+                url: `api/v1/users/enable/${username}`,
+                method: 'POST'
+            })
+        }),
+
+        deleteUser: builder.mutation<void, { username: string }>({
+            query: ({ username }) => ({
+                url: `api/v1/users/${username}`,
+                method: 'DELETE',
             }),
         }),
+
+
+        testMethod: builder.mutation<void, { username: string }>({
+            query: ({ username }) => ({
+                url: `api/v1/users/test-method/${username}`,
+                method: 'POST',
+            }),
+        }),
+
     }),
 })
 
-export const { useGetMeQuery, useUpdateMeMutation } = userApi
+export const { useGetMeQuery,useCountUserQuery,useGetAllUserProfileQuery,useDisableUserMutation,useEnableUserMutation,useTestMethodMutation,useDeleteUserMutation} = userApi
 

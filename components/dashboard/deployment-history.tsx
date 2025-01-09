@@ -1,49 +1,29 @@
 import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
+import {parseTimeSince} from "@/lib/timeUtils";
+import {BuildHistoryResponse} from "@/components/dashboard/DashboardComponent";
 
-const deployments = [
-    {
-        status: "fail",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "10 min ago"
-    },
-    {
-        status: "success",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "19 min ago"
-    },
-    {
-        status: "success",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "20 min ago"
-    },
-    {
-        status: "fail",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "10 hour ago"
-    },
-    {
-        status: "success",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "2 hour ago"
-    },
-    {
-        status: "fail",
-        name: "Cloudinator",
-        description: "feat: add new dashboard",
-        timeAgo: "2 day ago"
-    },
-]
 
-export function DeploymentHistory() {
+type BuildHistoryProps = {
+    buildHistory: BuildHistoryResponse | undefined;
+}
+
+export function DeploymentHistory({ buildHistory }: BuildHistoryProps) {
+    if (!buildHistory) {
+        return null;
+    }
+
+    // Sort the buildHistory array by timeSince
+    const sortedBuildHistory = [...buildHistory].sort((a, b) =>
+        parseTimeSince(a.timeSince) - parseTimeSince(b.timeSince)
+    );
+
+    // Slice the data to get the 5 latest entries
+    const latestBuildHistory = sortedBuildHistory.slice(0, 5);
+
     return (
         <div className="space-y-4">
-            {deployments.map((deployment, index) => (
+            {latestBuildHistory.map((deployment, index) => (
                 <div key={index} className="flex items-center gap-4">
                     <Badge
                         variant="outline"
@@ -57,10 +37,9 @@ export function DeploymentHistory() {
                         {deployment.status}
                     </Badge>
                     <div className="flex-1 space-y-1">
-                        <p className="text-sm font-medium leading-none">{deployment.name}</p>
-                        <p className="text-sm text-muted-foreground">{deployment.description}</p>
+                        <p className="text-sm font-medium leading-none">{deployment.jobName}</p>
                     </div>
-                    <div className="text-sm text-muted-foreground">{deployment.timeAgo}</div>
+                    <div className="text-sm text-muted-foreground">{deployment.timeSince}</div>
                 </div>
             ))}
         </div>

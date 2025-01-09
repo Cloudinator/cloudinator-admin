@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { Plus, Pencil, Trash2, Search, UserCheck, UserMinus, UserX, ChevronLeft, ChevronRight } from 'lucide-react'
+import {Plus, Trash2, Search, UserCheck, UserMinus, ChevronLeft, ChevronRight, Eye} from 'lucide-react'
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import {
@@ -32,32 +32,42 @@ import {
 } from "@/components/ui/select"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Progress } from "@/components/ui/progress"
+import {
+    useDeleteUserMutation,
+    useDisableUserMutation,
+    useEnableUserMutation,
+    useGetAllUserProfileQuery
+} from "@/redux/api/userApi"
+import Link from "next/link";
 
-// Mock user data
-const initialUsers = Array.from({ length: 50 }, (_, i) => ({
-    id: i + 1,
-    username: `user${i + 1}`,
-    email: `user${i + 1}@example.com`,
-    role: i % 5 === 0 ? "Admin" : "User",
-    status: i % 3 === 0 ? "Active" : i % 3 === 1 ? "Inactive" : "Pending",
-    avatar: `/placeholder.svg?height=40&width=40`,
-    lastActive: new Date(Date.now() - Math.floor(Math.random() * 10000000000)).toISOString(),
-}))
+interface User {
+    username: string
+    email: string
+    profileImage: string
+    isEnabled: boolean
+    roles: string[] | null
+}
 
 export function UserManagement() {
-    const [users, setUsers] = useState(initialUsers)
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-    const [newUser, setNewUser] = useState({ username: "", email: "", password: "", role: "", status: "Pending" })
+    const [newUser, setNewUser] = useState({ username: "", email: "", password: "", role: "", isEnabled: true })
     const [currentPage, setCurrentPage] = useState(1)
     const usersPerPage = 10
 
+    const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false)
+    const [confirmAction, setConfirmAction] = useState<{ type: 'enable' | 'disable' | 'delete', username: string } | null>(null)
+
+    const { data: users = [], refetch } = useGetAllUserProfileQuery()
+    const [disableUser] = useDisableUserMutation();
+    const [enableUser] = useEnableUserMutation();
+    const [deleteUser] = useDeleteUserMutation();
+
     const filteredUsers = users.filter(
-        (user) =>
+        (user: User) =>
             user.username.toLowerCase().includes(searchTerm.toLowerCase()) ||
             user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.role.toLowerCase().includes(searchTerm.toLowerCase()) ||
-            user.status.toLowerCase().includes(searchTerm.toLowerCase())
+            String(user.isEnabled).toLowerCase().includes(searchTerm.toLowerCase())
     )
 
     const indexOfLastUser = currentPage * usersPerPage
@@ -66,33 +76,72 @@ export function UserManagement() {
     const totalPages = Math.ceil(filteredUsers.length / usersPerPage)
 
     const handleAddUser = () => {
-        setUsers([...users, { id: users.length + 1, ...newUser, avatar: `/placeholder.svg?height=40&width=40`, lastActive: new Date().toISOString() }])
-        setNewUser({ username: "", email: "", password: "", role: "", status: "Pending" })
+        // Implement user addition logic here
+        console.log("Adding user:", newUser)
         setIsAddDialogOpen(false)
     }
 
-    const handleDeleteUser = (id: number) => {
-        setUsers(users.filter((user) => user.id !== id))
+    const handleDeleteUser = async (username: string) => {
+        const user = users.find((u: User) => u.username === username);
+        if (user && user.isEnabled) {
+            alert("Please disable the user before deleting.");
+            return;
+        }
+        setConfirmAction({ type: 'delete', username });
+        setIsConfirmDialogOpen(true);
     }
 
-    const userStatusCount = users.reduce((acc, user) => {
-        acc[user.status] = (acc[user.status] || 0) + 1
-        return acc
-    }, {} as Record<string, number>)
+    const handleDisableUser = async (username: string) => {
+        setConfirmAction({ type: 'disable', username });
+        setIsConfirmDialogOpen(true);
+    }
 
-    const totalUsers = users.length
-    const activePercentage = ((userStatusCount.Active || 0) / totalUsers) * 100
+    const handleEnableUser = async (username: string) => {
+        setConfirmAction({ type: 'enable', username });
+        setIsConfirmDialogOpen(true);
+    }
+
+    const handleConfirmAction = async () => {
+        if (!confirmAction) return;
+
+        try {
+            switch (confirmAction.type) {
+                case 'enable':
+                    await enableUser({ username: confirmAction.username }).unwrap();
+                    console.log(`User ${confirmAction.username} enabled successfully`);
+                    break;
+                case 'disable':
+                    await disableUser({ username: confirmAction.username }).unwrap();
+                    console.log(`User ${confirmAction.username} disabled successfully`);
+                    break;
+                case 'delete':
+                    await deleteUser({ username: confirmAction.username });
+                    console.log(`User ${confirmAction.username} deleted successfully`);
+                    break;
+            }
+        } catch (error) {
+            refetch();
+            console.log(`Error ${confirmAction.type}ing user:`, error);
+        }
+
+        setIsConfirmDialogOpen(false);
+        setConfirmAction(null);
+    }
+
+    const activeUsers = users.filter((user: User) => user.isEnabled).length
+    const inactiveUsers = users.length - activeUsers
+    const activePercentage = (activeUsers / users.length) * 100
 
     return (
         <div className="space-y-6">
-            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+            <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Users</CardTitle>
                         <UserCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{totalUsers}</div>
+                        <div className="text-2xl font-bold">{users.length}</div>
                         <Progress value={activePercentage} className="mt-2" />
                         <p className="text-xs text-muted-foreground mt-2">{activePercentage.toFixed(1)}% active users</p>
                     </CardContent>
@@ -103,7 +152,7 @@ export function UserManagement() {
                         <UserCheck className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{userStatusCount.Active || 0}</div>
+                        <div className="text-2xl font-bold">{activeUsers}</div>
                     </CardContent>
                 </Card>
                 <Card>
@@ -112,16 +161,7 @@ export function UserManagement() {
                         <UserMinus className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{userStatusCount.Inactive || 0}</div>
-                    </CardContent>
-                </Card>
-                <Card>
-                    <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium">Pending Users</CardTitle>
-                        <UserX className="h-4 w-4 text-muted-foreground" />
-                    </CardHeader>
-                    <CardContent>
-                        <div className="text-2xl font-bold">{userStatusCount.Pending || 0}</div>
+                        <div className="text-2xl font-bold">{inactiveUsers}</div>
                     </CardContent>
                 </Card>
             </div>
@@ -216,42 +256,52 @@ export function UserManagement() {
                             <TableHead>Email</TableHead>
                             <TableHead>Role</TableHead>
                             <TableHead>Status</TableHead>
-                            <TableHead>Last Active</TableHead>
                             <TableHead className="text-right">Actions</TableHead>
                         </TableRow>
                     </TableHeader>
                     <TableBody>
-                        {currentUsers.map((user) => (
-                            <TableRow key={user.id}>
+                        {currentUsers.map((user: User) => (
+                            <TableRow key={user.username}>
                                 <TableCell className="font-medium">
                                     <div className="flex items-center">
                                         <Avatar className="h-8 w-8 mr-2">
-                                            <AvatarImage src={user.avatar} alt={user.username} />
+                                            <AvatarImage src={user.profileImage} alt={user.username} />
                                             <AvatarFallback>{user.username.slice(0, 2).toUpperCase()}</AvatarFallback>
                                         </Avatar>
                                         {user.username}
                                     </div>
                                 </TableCell>
                                 <TableCell>{user.email}</TableCell>
-                                <TableCell>{user.role}</TableCell>
+                                <TableCell>{user.roles ? user.roles.join(', ') : 'No roles'}</TableCell>
                                 <TableCell>
-                  <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
-                      user.status === 'Active' ? 'bg-green-100 text-green-800' :
-                          user.status === 'Inactive' ? 'bg-red-100 text-red-800' :
-                              'bg-yellow-100 text-yellow-800'
-                  }`}>
-                    {user.status}
-                  </span>
+                                    <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${
+                                        user.isEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                                    }`}>
+                                        {user.isEnabled ? 'Active' : 'Inactive'}
+                                    </span>
                                 </TableCell>
-                                <TableCell>{new Date(user.lastActive).toLocaleDateString()}</TableCell>
                                 <TableCell className="text-right">
-                                    <Button variant="ghost" size="icon">
-                                        <Pencil className="h-4 w-4" />
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                    >
+                                        <Link href={`/users/${user.username}`}>
+                                            <Eye className="h-4 w-4" />
+                                        </Link>
                                     </Button>
                                     <Button
                                         variant="ghost"
                                         size="icon"
-                                        onClick={() => handleDeleteUser(user.id)}
+                                        onClick={() => user.isEnabled ? handleDisableUser(user.username) : handleEnableUser(user.username)}
+                                        disabled={user.isEnabled === undefined}
+                                    >
+                                        {user.isEnabled ? <UserMinus className="h-4 w-4" /> : <UserCheck className="h-4 w-4" />}
+                                    </Button>
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        onClick={() => handleDeleteUser(user.username)}
+                                        disabled={user.isEnabled}
                                     >
                                         <Trash2 className="h-4 w-4" />
                                     </Button>
@@ -286,6 +336,21 @@ export function UserManagement() {
                     </Button>
                 </div>
             </div>
+
+            <Dialog open={isConfirmDialogOpen} onOpenChange={setIsConfirmDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Confirm Action</DialogTitle>
+                        <DialogDescription>
+                            Are you sure you want to {confirmAction?.type} user {confirmAction?.username}?
+                        </DialogDescription>
+                    </DialogHeader>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsConfirmDialogOpen(false)}>Cancel</Button>
+                        <Button onClick={handleConfirmAction}>Confirm</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }
