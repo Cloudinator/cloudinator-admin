@@ -58,13 +58,13 @@ export default function DashboardPageComponent() {
     return (
         <div className="flex-1 space-y-6 p-8">
             <div className="flex items-center space-y-2">
-                <h1 className="text-3xl font-bold tracking-tight">Hi, Welcome back, {data?.username} 👋</h1>
+                <h1 className="text-3xl font-semibold tracking-tight">Hi, Welcome back, <span className="text-purple-500 font-bold">{data?.username}</span> 👋</h1>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-muted-foreground">Overall Project</p>
+                            <p className="text-sm font-medium text-muted-foreground text-purple-500 font-semibold">Overall Project</p>
                             <FolderKanban className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="flex items-center justify-between">
@@ -77,7 +77,7 @@ export default function DashboardPageComponent() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-muted-foreground">Total Users</p>
+                            <p className="text-sm font-medium text-muted-foreground text-purple-500 font-semibold">Total Users</p>
                             <Users className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="flex items-center justify-between">
@@ -89,8 +89,8 @@ export default function DashboardPageComponent() {
                 </Card>
                 <Card>
                     <CardContent className="p-6">
-                        <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-muted-foreground">Total SuccessRate</p>
+                        <div className="flex items-center justify-between space-y-0 pb-2 ">
+                            <p className="text-sm font-medium text-muted-foreground text-purple-500 font-semibold">Total SuccessRate</p>
                             <Cloud className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="flex items-center justify-between">
@@ -103,7 +103,7 @@ export default function DashboardPageComponent() {
                 <Card>
                     <CardContent className="p-6">
                         <div className="flex items-center justify-between space-y-0 pb-2">
-                            <p className="text-sm font-medium text-muted-foreground">Active Now</p>
+                            <p className="text-sm font-medium text-muted-foreground text-purple-500 font-semibold">Active Now</p>
                             <Activity className="h-4 w-4 text-muted-foreground" />
                         </div>
                         <div className="flex items-center justify-between">
@@ -118,7 +118,7 @@ export default function DashboardPageComponent() {
                 <Card className="col-span-4">
                     <CardContent className="p-6">
                         <div className="flex flex-col space-y-2">
-                            <h3 className="font-semibold">Area Chart - Interactive build history</h3>
+                            <h3 className="font-semibold text-purple-500">Area Chart - Interactive build history</h3>
                             <p className="text-sm text-muted-foreground">Showing total build for the last 3 months</p>
                             <div className="h-[350px]">
                                 <AreaChart buildAnalysis={buildAnalysis} />
@@ -129,13 +129,13 @@ export default function DashboardPageComponent() {
                 <div className="col-span-3 grid gap-4">
                     <Card>
                         <CardContent className="p-6">
-                            <h3 className="font-semibold mb-4">Recent Deployment</h3>
+                            <h3 className="font-semibold mb-4 text-purple-500 font-semibold">Recent Deployment</h3>
                             <DeploymentHistory buildHistory={buildHistory}/>
                         </CardContent>
                     </Card>
                     <Card>
                         <CardContent className="p-6">
-                            <h3 className="font-semibold mb-4">Project Overall</h3>
+                            <h3 className="font-semibold mb-4 text-purple-500 font-semibold">Project Overall</h3>
                             <ProjectOverview />
                         </CardContent>
                     </Card>

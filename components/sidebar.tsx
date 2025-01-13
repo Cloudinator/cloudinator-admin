@@ -1,12 +1,13 @@
 "use client";
 
 import { MainNav } from "@/components/main-nav";
-import { ThemeToggle } from "@/components/theme-toggle";
 import { cn } from "@/lib/utils";
 import { PanelLeftClose, PanelRightClose } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import Image from "next/image";
+import { ModeToggle } from "./ModeToggle";
+
 
 export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -47,15 +48,14 @@ export function Sidebar({ className }: React.HTMLAttributes<HTMLDivElement>) {
           {/* Navigation */}
           <div className="flex-1 overflow-auto">
             <MainNav isCollapsed={isCollapsed} />
-            {/* <div className="ml-[2px]">
-                <ThemeToggle />
-            </div> */}
+              
           </div>
 
           {/* Footer */}
           <div className="p-4 flex justify-center">
-            <ThemeToggle />
+            <ModeToggle />
           </div>
+          
         </div>
       </section>
     </main>

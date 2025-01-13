@@ -3,11 +3,12 @@ import { Sidebar } from "@/components/sidebar";
 import { Poppins } from "next/font/google";
 import "./globals.css";
 import StoreProvider from "@/app/StoreProvider";
+import { Toaster } from "@/components/ui/toaster";
 
 const poppins = Poppins({
-  subsets: ["latin"],
-  weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"],
-  variable: "--font-poppins",
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-poppins',
 });
 
 export const metadata = {
@@ -22,14 +23,17 @@ export default function RootLayout({
   children: React.ReactNode;
 }) {
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body className={`${poppins.variable} antialiased`}>
         <LayoutProvider>
           <StoreProvider>
-            <div className="flex min-h-screen">
+            <main className="flex min-h-screen">
               <Sidebar/>
-              <main className="flex-1 overflow-y-auto">{children}</main>
-            </div>
+                <div className="flex-1 overflow-y-auto">
+                  {children}
+                  <Toaster />
+                </div>
+            </main>
           </StoreProvider>
         </LayoutProvider>
       </body>
