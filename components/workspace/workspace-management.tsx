@@ -216,12 +216,11 @@ export function WorkspaceManagement() {
     const handleToggleWorkspaceStatus = async (workspace: Workspace) => {
         setLoadingWorkspace(workspace.uuid); // Set loading state for the specific workspace
     
-        try {
-            let result;
+        try {            
             if (workspace.isActive) {
-                result = await disableWorkspace({ name: workspace.name }).unwrap();
+                await disableWorkspace({ name: workspace.name }).unwrap();
             } else {
-                result = await enableWorkspace({ name: workspace.name }).unwrap();
+                await enableWorkspace({ name: workspace.name }).unwrap();
             }
     
             toast({

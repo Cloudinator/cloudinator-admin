@@ -8,7 +8,7 @@ import {
     useStartServiceDeploymentMutation,
     useStopServiceDeploymentMutation
 } from "@/redux/api/projectApi";
-import { ChevronLeft, ChevronRight, LayoutDashboard, Database, ExternalLink, Eye, Folder, GitBranch, Globe, Layout, Power, Search, Server, Share2, Trash2, StopCircle, Loader2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, LayoutDashboard, Database, ExternalLink, Eye, Folder, GitBranch, Globe, Layout, Power, Search, Server, Share2, Trash2, Loader2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -151,6 +151,11 @@ const WorkSpaceDetailPage = ({ params }: PropsParams) => {
     const [loadingService, setLoadingService] = useState<string | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
+    const [deleteConfirmationName, setDeleteConfirmationName] = useState("");
+    const [serviceToDelete, setServiceToDelete] = useState<ServiceType | null>(null);
+    const [isInputValid, setIsInputValid] = useState(false);
+
     const { toast } = useToast();
 
     useEffect(() => {
@@ -183,11 +188,22 @@ const WorkSpaceDetailPage = ({ params }: PropsParams) => {
         }
     }, [isServicesLoading, isSubWorkspacesLoading, isServicesFetching, isSubWorkspacesFetching]);
 
-    const handleDeleteService = async (name: string) => {
-        setLoadingService(name); // Set loading state for the specific service
+    const handleDeleteService = async (name: string, confirmationName: string) => {
+        if (confirmationName !== name) {
+            toast({
+                title: "Error",
+                description: "The confirmation name does not match the service name.",
+                variant: "error",
+                duration: 5000,
+            });
+            return;
+        }
+
+        setLoadingService(name);
 
         try {
-            await deleteService({ name: name }).unwrap();
+            const result = await deleteService({ name: name }).unwrap();
+
             toast({
                 title: "Success",
                 description: `Service "${name}" has been deleted successfully.`,
@@ -195,18 +211,43 @@ const WorkSpaceDetailPage = ({ params }: PropsParams) => {
                 duration: 3000,
             });
 
-            refetchServices(); // Refetch services data
-            refetchSubWorkspaces(); // Refetch sub-workspaces data
+            console.log("Service deleted:", result);
+
+            refetchServices();
+            refetchSubWorkspaces();
         } catch (err) {
             const error = err as ErrorResponse;
-            toast({
-                title: "Error",
-                description: error?.data?.message || "Failed to delete service. Please try again.",
-                variant: "error",
-                duration: 5000,
-            });
+
+            console.log("Failed to delete service:", error);
+
+            if (error?.status === "PARSING_ERROR" && error?.originalStatus === 200) {
+                toast({
+                    title: "Success",
+                    description:
+                        error?.data?.message ||
+                        `Service "${name}" has been deleted successfully.`,
+                    variant: "success",
+                    duration: 3000,
+                });
+
+                refetchServices();
+                refetchSubWorkspaces();
+            } else {
+                toast({
+                    title: "Error",
+                    description:
+                        error?.data?.message ||
+                        "Failed to delete service. Please try again.",
+                    variant: "error",
+                    duration: 5000,
+                });
+            }
         } finally {
-            setLoadingService(null); // Clear loading state
+            setLoadingService(null);
+            setIsDeleteModalOpen(false);
+            setDeleteConfirmationName("");
+            setIsInputValid(false);
+            setServiceToDelete(null);
         }
     };
 
@@ -435,38 +476,70 @@ const WorkSpaceDetailPage = ({ params }: PropsParams) => {
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
-                                        <AlertDialog>
-                                            <AlertDialogTrigger asChild>
-                                                <Button variant="ghost" size="icon" className="text-purple-600 hover:bg-purple-100">
-                                                    <Trash2 className="h-4 w-4" />
-                                                </Button>
-                                            </AlertDialogTrigger>
+                                        {/* Confirmation Modal */}
+                                        <AlertDialog open={isDeleteModalOpen} onOpenChange={(open) => {
+                                            if (!open) {
+                                                setIsDeleteModalOpen(false);
+                                                setDeleteConfirmationName("");
+                                                setIsInputValid(false);
+                                                setServiceToDelete(null);
+                                            } else {
+                                                setIsDeleteModalOpen(true);
+                                            }
+                                        }}>
                                             <AlertDialogContent className="bg-white border-purple-300">
                                                 <AlertDialogHeader>
                                                     <AlertDialogTitle>Delete Service</AlertDialogTitle>
                                                     <AlertDialogDescription>
-                                                        Are you sure you want to delete the service &#34;{service.name}&#34;? This action cannot be undone.
+                                                        Are you sure you want to delete the service &#34;{serviceToDelete?.name}&#34;? This action cannot be undone.
                                                     </AlertDialogDescription>
                                                 </AlertDialogHeader>
-                                                <AlertDialogFooter>
-                                                    <AlertDialogCancel className="border-purple-300 text-purple-600 hover:bg-purple-50">Cancel</AlertDialogCancel>
-                                                    <AlertDialogAction
-                                                        onClick={(e) => {
-                                                            e.stopPropagation(); // Prevent row click when clicking the action
-                                                            handleToggleStopAndStartService(service);
+                                                <div className="mt-4">
+                                                    <Input
+                                                        type="text"
+                                                        placeholder={`Type "${serviceToDelete?.name}" to confirm`}
+                                                        value={deleteConfirmationName}
+                                                        onChange={(e) => {
+                                                            setDeleteConfirmationName(e.target.value);
+                                                            setIsInputValid(e.target.value === serviceToDelete?.name);
                                                         }}
-                                                        className={service.status ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
-                                                        disabled={loadingService === service.name} // Disable button while loading
+                                                    />
+                                                </div>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel className="border-purple-300 text-purple-600 hover:bg-purple-50">
+                                                        Cancel
+                                                    </AlertDialogCancel>
+                                                    <AlertDialogAction
+                                                        onClick={() => {
+                                                            if (serviceToDelete) {
+                                                                handleDeleteService(serviceToDelete.name, deleteConfirmationName);
+                                                            }
+                                                        }}
+                                                        className="bg-red-500 hover:bg-red-600"
+                                                        disabled={!isInputValid || loadingService === serviceToDelete?.name}
                                                     >
-                                                        {loadingService === service.name ? (
-                                                            <Loader2 className="h-4 w-4 animate-spin" /> // Show loading spinner
+                                                        {loadingService === serviceToDelete?.name ? (
+                                                            <Loader2 className="h-4 w-4 animate-spin" />
                                                         ) : (
-                                                            service.status ? "Stop" : "Start"
+                                                            "Delete"
                                                         )}
                                                     </AlertDialogAction>
                                                 </AlertDialogFooter>
                                             </AlertDialogContent>
                                         </AlertDialog>
+
+                                        {/* Delete Button */}
+                                        <Button
+                                            variant="ghost"
+                                            size="icon"
+                                            className="text-purple-600 hover:bg-purple-100"
+                                            onClick={() => {
+                                                setServiceToDelete(service);
+                                                setIsDeleteModalOpen(true);
+                                            }}
+                                        >
+                                            <Trash2 className="h-4 w-4" />
+                                        </Button>
                                     </TableCell>
                                 </TableRow>
                             ))}
