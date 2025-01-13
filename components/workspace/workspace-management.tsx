@@ -1,9 +1,9 @@
 "use client"
 
-import {useState, useMemo} from "react"
-import {Search, Briefcase, Users, Calendar, ChevronLeft, ChevronRight, Eye, Power, Trash2, Plus} from 'lucide-react'
-import {Button} from "@/components/ui/button"
-import {Input} from "@/components/ui/input"
+import { useState, useMemo } from "react"
+import { Search, Briefcase, Users, Calendar, ChevronLeft, ChevronRight, Eye, Power, Trash2, Plus } from 'lucide-react'
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
 import {
     Dialog,
     DialogContent,
@@ -13,10 +13,21 @@ import {
     DialogTitle,
     DialogTrigger,
 } from "@/components/ui/dialog"
-import {Label} from "@/components/ui/label"
-import {Card, CardContent, CardHeader, CardTitle} from "@/components/ui/card"
-import {Progress} from "@/components/ui/progress"
-import {Badge} from "@/components/ui/badge"
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
+import { Label } from "@/components/ui/label"
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
+import { Progress } from "@/components/ui/progress"
+import { Badge } from "@/components/ui/badge"
 import {
     Table,
     TableBody,
@@ -25,15 +36,16 @@ import {
     TableHeader,
     TableRow,
 } from "@/components/ui/table"
-import {Avatar, AvatarFallback} from "@/components/ui/avatar"
-import {Tabs, TabsContent, TabsList, TabsTrigger} from "@/components/ui/tabs"
+import { Avatar, AvatarFallback } from "@/components/ui/avatar"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import {
     useCountAllServicesQuery,
-    useCountAllSubWorkspaceQuery, useDisableWorkspaceMutation,
+    useCountAllSubWorkspaceQuery,
+    useDisableWorkspaceMutation,
     useEnableWorkspaceMutation,
     useGetAllWorkSpacesQuery
 } from "@/redux/api/projectApi"
-import Link from "next/link";
+import Link from "next/link"
 
 type Workspace = {
     uuid: string
@@ -46,31 +58,28 @@ type Workspaces = Workspace[]
 export function WorkspaceManagement() {
     const [searchTerm, setSearchTerm] = useState("")
     const [isAddDialogOpen, setIsAddDialogOpen] = useState(false)
-    const [newWorkspace, setNewWorkspace] = useState({name: "", description: ""})
+    const [newWorkspace, setNewWorkspace] = useState({ name: "", description: "" })
     const [currentPage, setCurrentPage] = useState(1)
     const workspacesPerPage = 8
 
-    const [enableWorkspace] = useEnableWorkspaceMutation();
+    const [enableWorkspace] = useEnableWorkspaceMutation()
+    const [disableWorkspace] = useDisableWorkspaceMutation()
 
-    const [disableWorkspace] = useDisableWorkspaceMutation();
-
-    const {data: workspaces, isLoading, isError, refetch} = useGetAllWorkSpacesQuery() as {
+    const { data: workspaces, isLoading, isError, refetch } = useGetAllWorkSpacesQuery() as {
         data: Workspaces | undefined,
         isLoading: boolean,
         isError: boolean,
         refetch: () => void
     }
 
-    const {data: countService} = useCountAllServicesQuery();
-
-    const {data: countSubWorkspaces} = useCountAllSubWorkspaceQuery();
+    const { data: countService } = useCountAllServicesQuery()
+    const { data: countSubWorkspaces } = useCountAllSubWorkspaceQuery()
 
     const filteredWorkspaces = useMemo(() => {
         return workspaces?.filter(
             (workspace) => workspace.name.toLowerCase().includes(searchTerm.toLowerCase())
         ) || []
     }, [workspaces, searchTerm])
-
 
     const indexOfLastWorkspace = currentPage * workspacesPerPage
     const indexOfFirstWorkspace = indexOfLastWorkspace - workspacesPerPage
@@ -80,7 +89,7 @@ export function WorkspaceManagement() {
     const handleAddWorkspace = () => {
         // Implement API call to add new workspace
         console.log("Adding new workspace:", newWorkspace)
-        setNewWorkspace({name: "", description: ""})
+        setNewWorkspace({ name: "", description: "" })
         setIsAddDialogOpen(false)
     }
 
@@ -89,33 +98,26 @@ export function WorkspaceManagement() {
         console.log("Deleting workspace:", uuid)
     }
 
-
     const handleToggleWorkspaceStatus = (workspace: Workspace) => {
         try {
             if (workspace.isActive) {
-                disableWorkspace({name: workspace.name});
-                refetch();
+                disableWorkspace({ name: workspace.name })
             } else {
-                enableWorkspace({name: workspace.name});
-                refetch();
+                enableWorkspace({ name: workspace.name })
             }
-
+            refetch()
         } catch (error) {
-
             console.log("Error toggling workspace status:", error)
         }
-    };
-
+    }
 
     const totalWorkspaces = workspaces?.length || 0
     const activeWorkspaces = workspaces?.filter(w => w.isActive).length || 0
 
-    console.log(countService, countSubWorkspaces);
-
     if (isLoading) return <div>Loading...</div>
     if (isError) return <div>Error loading workspaces</div>
 
-    const total_projects = Number(countService) + Number(countSubWorkspaces);
+    const total_projects = Number(countService) + Number(countSubWorkspaces)
 
     return (
         <div className="space-y-6">
@@ -124,7 +126,7 @@ export function WorkspaceManagement() {
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
                         <Button>
-                            <Plus className="mr-2 h-4 w-4"/> Add Workspace
+                            <Plus className="mr-2 h-4 w-4" /> Add Workspace
                         </Button>
                     </DialogTrigger>
                     <DialogContent>
@@ -142,7 +144,7 @@ export function WorkspaceManagement() {
                                 <Input
                                     id="name"
                                     value={newWorkspace.name}
-                                    onChange={(e) => setNewWorkspace({...newWorkspace, name: e.target.value})}
+                                    onChange={(e) => setNewWorkspace({ ...newWorkspace, name: e.target.value })}
                                     className="col-span-3"
                                 />
                             </div>
@@ -153,7 +155,7 @@ export function WorkspaceManagement() {
                                 <Input
                                     id="description"
                                     value={newWorkspace.description}
-                                    onChange={(e) => setNewWorkspace({...newWorkspace, description: e.target.value})}
+                                    onChange={(e) => setNewWorkspace({ ...newWorkspace, description: e.target.value })}
                                     className="col-span-3"
                                 />
                             </div>
@@ -168,7 +170,7 @@ export function WorkspaceManagement() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Workspaces</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground"/>
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{totalWorkspaces}</div>
@@ -184,7 +186,7 @@ export function WorkspaceManagement() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Members</CardTitle>
-                        <Users className="h-4 w-4 text-muted-foreground"/>
+                        <Users className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">N/A</div>
@@ -194,21 +196,25 @@ export function WorkspaceManagement() {
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Total Projects</CardTitle>
-                        <Briefcase className="h-4 w-4 text-muted-foreground"/>
+                        <Briefcase className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
                         <div className="text-2xl font-bold">{total_projects}</div>
-                        <p className="text-xs text-muted-foreground mt-2">Data not available</p>
+                        <p className="text-xs text-muted-foreground mt-2">Across all workspaces</p>
                     </CardContent>
                 </Card>
                 <Card>
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                         <CardTitle className="text-sm font-medium">Avg Projects/Workspace</CardTitle>
-                        <Calendar className="h-4 w-4 text-muted-foreground"/>
+                        <Calendar className="h-4 w-4 text-muted-foreground" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">N/A</div>
-                        <p className="text-xs text-muted-foreground mt-2">Data not available</p>
+                        <div className="text-2xl font-bold">
+                            {totalWorkspaces > 0 ? (total_projects / totalWorkspaces).toFixed(2) : 'N/A'}
+                        </div>
+                        <p className="text-xs text-muted-foreground mt-2">
+                            {totalWorkspaces > 0 ? 'Average across all workspaces' : 'No workspaces available'}
+                        </p>
                     </CardContent>
                 </Card>
             </div>
@@ -221,7 +227,7 @@ export function WorkspaceManagement() {
                 <TabsContent value="all" className="space-y-4">
                     <div className="flex justify-between">
                         <div className="relative w-64">
-                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground"/>
+                            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                             <Input
                                 placeholder="Search workspaces..."
                                 value={searchTerm}
@@ -256,28 +262,71 @@ export function WorkspaceManagement() {
                                             </Badge>
                                         </TableCell>
                                         <TableCell className="text-right">
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                            >
-                                                <Link href={`/workspace/${workspace.name}`}>
-                                                    <Eye className="h-4 w-4" />
-                                                </Link>
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleToggleWorkspaceStatus(workspace)}
-                                            >
-                                                <Power className="h-4 w-4"/>
-                                            </Button>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={() => handleDeleteWorkspace(workspace.uuid)}
-                                            >
-                                                <Trash2 className="h-4 w-4"/>
-                                            </Button>
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Eye className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>View Workspace</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to view the workspace &#34;{workspace.name}&#34;?
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction asChild>
+                                                            <Link href={`/workspace/${workspace.name}`}>
+                                                                <Button variant="default">View</Button>
+                                                            </Link>
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Power className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>{workspace.isActive ? "Stop" : "Start"} Workspace</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to {workspace.isActive ? "stop" : "start"} the workspace &#34;{workspace.name}&#34;?
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleToggleWorkspaceStatus(workspace)}>
+                                                            {workspace.isActive ? "Stop" : "Start"}
+                                                        </AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
+
+                                            <AlertDialog>
+                                                <AlertDialogTrigger asChild>
+                                                    <Button variant="ghost" size="icon">
+                                                        <Trash2 className="h-4 w-4" />
+                                                    </Button>
+                                                </AlertDialogTrigger>
+                                                <AlertDialogContent>
+                                                    <AlertDialogHeader>
+                                                        <AlertDialogTitle>Delete Workspace</AlertDialogTitle>
+                                                        <AlertDialogDescription>
+                                                            Are you sure you want to delete the workspace &#34;{workspace.name}&#34;? This action cannot be undone.
+                                                        </AlertDialogDescription>
+                                                    </AlertDialogHeader>
+                                                    <AlertDialogFooter>
+                                                        <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                        <AlertDialogAction onClick={() => handleDeleteWorkspace(workspace.uuid)}>Delete</AlertDialogAction>
+                                                    </AlertDialogFooter>
+                                                </AlertDialogContent>
+                                            </AlertDialog>
                                         </TableCell>
                                     </TableRow>
                                 ))}

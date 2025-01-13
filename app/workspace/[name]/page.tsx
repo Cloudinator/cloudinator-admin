@@ -1,24 +1,16 @@
 'use client'
-import {useEffect, useMemo, useState} from "react";
+
+import { useEffect, useMemo, useState } from "react";
 import {
     useDeleteServiceDeploymentMutation,
     useGetServiceDeploymentQuery,
-    useGetSubWorkspacesQuery, useStartServiceDeploymentMutation, useStopServiceDeploymentMutation
+    useGetSubWorkspacesQuery,
+    useStartServiceDeploymentMutation,
+    useStopServiceDeploymentMutation
 } from "@/redux/api/projectApi";
-import {
-    ChevronLeft, ChevronRight,
-    Database,
-    ExternalLink, Eye,
-    Folder,
-    GitBranch,
-    Globe,
-    Layout, Power,
-    Search,
-    Server,
-    Share2, Trash2
-} from 'lucide-react';
-import {Button} from "@/components/ui/button";
-import {Input} from "@/components/ui/input";
+import { ChevronLeft, ChevronRight, Database, ExternalLink, Eye, Folder, GitBranch, Globe, Layout, Power, Search, Server, Share2, Trash2 } from 'lucide-react';
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import {
     Select,
     SelectContent,
@@ -35,7 +27,18 @@ import {
     TableRow,
 } from "@/components/ui/table";
 import Link from "next/link";
-import {useToast} from "@/hooks/use-toast";
+import { useToast } from "@/hooks/use-toast";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+    AlertDialogTrigger,
+} from "@/components/ui/alert-dialog";
 
 export type PropsParams = {
     params: Promise<{ name: string }>
@@ -84,7 +87,6 @@ interface ErrorResponse {
     };
 }
 
-
 function getServiceIcon(type: ServiceType['type']) {
     switch (type) {
         case 'all':
@@ -100,7 +102,6 @@ function getServiceIcon(type: ServiceType['type']) {
     }
 }
 
-// Simple Breadcrumb components
 const Breadcrumb = ({children}: { children: React.ReactNode }) => (
     <nav className="flex" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
@@ -122,76 +123,80 @@ const BreadcrumbLink = ({href, children}: { href: string; children: React.ReactN
     </Link>
 );
 
-const UserDetailPage = ({params}: PropsParams) => {
-    const [projectName, setProjectName] = useState<string>('')
+const WorkSpaceDetailPage = ({params}: PropsParams) => {
+    const [projectName, setProjectName] = useState<string>('');
     const [searchTerm, setSearchTerm] = useState("");
     const [selectedType, setSelectedType] = useState<ServiceType['type'] | 'all'>('all');
-    const [currentPage, setCurrentPage] = useState(1)
-    const usersPerPage = 10
+    const [currentPage, setCurrentPage] = useState(1);
+    const usersPerPage = 10;
     const [selectedWorkspace, setSelectedWorkspace] = useState(projectName);
     const [deleteService] = useDeleteServiceDeploymentMutation();
     const [stopService] = useStopServiceDeploymentMutation();
     const [startService] = useStartServiceDeploymentMutation();
 
-    const {toast} = useToast();
+    const { toast } = useToast();
 
-    const {data: servicesData,refetch:data1} = useGetServiceDeploymentQuery({
+    const { data: servicesData, refetch: data1 } = useGetServiceDeploymentQuery({
         workspaceName: projectName,
         size: 10,
         page: 0,
     }) as unknown as { data: ServiceDeploymentResponse, refetch: () => void };
 
-    const {data: subWorkspaceData,refetch:data2} = useGetSubWorkspacesQuery({
+    const { data: subWorkspaceData, refetch: data2 } = useGetSubWorkspacesQuery({
         workspaceName: projectName,
         size: 10,
         page: 0,
-    }) as unknown as { data: SubWorkSpaceResponse,refetch: () => void };
+    }) as unknown as { data: SubWorkSpaceResponse, refetch: () => void };
 
-    const handleDeleteService = async (name:string) => {
-
+    const handleDeleteService = async (name: string) => {
         try {
-            const response = await deleteService({name : name}).unwrap()
-
-            console.log(response)
-
-        }catch (e) {
+            await deleteService({ name: name }).unwrap();
+            toast({
+                title: "Success",
+                description: `Service "${name}" has been deleted successfully.`,
+                variant: "default",
+                duration: 3000,
+            });
+            data1();
+            data2();
+        } catch (e) {
             const error = e as ErrorResponse;
-            if (error?.status === 'PARSING_ERROR' && error?.originalStatus === 200) {
-                toast({
-                    title: "Success",
-                    description: error?.data?.message || `Service "${name}" has been stop successfully.`,
-                    variant: "success",
-                    duration: 3000,
-                });
-
-                data1();
-                data2();
-            } else {
-                toast({
-                    title: "Error",
-                    description: error?.data?.message || "Failed to delete service. Please try again.",
-                    variant: "error",
-                    duration: 5000,
-                });
-            }
-            console.log(e)
+            toast({
+                title: "Error",
+                description: error?.data?.message || "Failed to delete service. Please try again.",
+                variant: "destructive",
+                duration: 5000,
+            });
+            console.log(e);
             data1();
             data2();
         }
-    }
+    };
 
-    const handleToggleStopAndStartService = (service: ServiceType) => {
+    const handleToggleStopAndStartService = async (service: ServiceType) => {
         try {
             if (service.status) {
-                stopService({name: service.name});
+                await stopService({ name: service.name }).unwrap();
             } else {
-                startService({name: service.name});
+                await startService({ name: service.name }).unwrap();
             }
-
-        } catch (error) {
+            toast({
+                title: "Success",
+                description: `Service "${service.name}" has been ${service.status ? "stopped" : "started"} successfully.`,
+                variant: "default",
+                duration: 3000,
+            });
             data1();
             data2();
-            console.log("Error toggling workspace status:", error)
+        } catch (error) {
+            const err = error as ErrorResponse;
+            toast({
+                title: "Error",
+                description: err?.data?.message || `Failed to ${service.status ? "stop" : "start"} service. Please try again.`,
+                variant: "destructive",
+                duration: 5000,
+            });
+            console.log("Error toggling service status:", error);
         }
     };
 
@@ -201,7 +206,6 @@ const UserDetailPage = ({params}: PropsParams) => {
         return [...services, ...subWorkspaces];
     }, [servicesData, subWorkspaceData]);
 
-
     const filteredServices = useMemo(() => {
         return combinedResults.filter((service: ServiceType) =>
             service.name.toLowerCase().includes(searchTerm.toLowerCase()) &&
@@ -209,16 +213,14 @@ const UserDetailPage = ({params}: PropsParams) => {
         );
     }, [combinedResults, searchTerm, selectedType]);
 
-
     useEffect(() => {
-        params.then(({name}) => setProjectName(name))
-    }, [params])
+        params.then(({name}) => setProjectName(name));
+    }, [params]);
 
-    const indexOfLastUser = currentPage * usersPerPage
-    const indexOfFirstUser = indexOfLastUser - usersPerPage
-    const currentUsers = filteredServices.slice(indexOfFirstUser, indexOfLastUser)
-    const totalPages = Math.ceil(filteredServices.length / usersPerPage)
-
+    const indexOfLastUser = currentPage * usersPerPage;
+    const indexOfFirstUser = indexOfLastUser - usersPerPage;
+    const currentUsers = filteredServices.slice(indexOfFirstUser, indexOfLastUser);
+    const totalPages = Math.ceil(filteredServices.length / usersPerPage);
 
     return (
         <div className="p-6">
@@ -317,30 +319,71 @@ const UserDetailPage = ({params}: PropsParams) => {
                                 )}
                             </TableCell>
                             <TableCell>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                >
-                                    {service.type === 'subworkspace' && (
-                                        <Link href={`/`}>
-                                            <Eye className="h-4 w-4"/>
-                                        </Link>
-                                    )}
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleToggleStopAndStartService(service)}
-                                >
-                                    <Power className="h-4 w-4"/>
-                                </Button>
-                                <Button
-                                    variant="ghost"
-                                    size="icon"
-                                    onClick={() => handleDeleteService(service.name)}
-                                >
-                                    <Trash2 className="h-4 w-4"/>
-                                </Button>
+                                {service.type === 'subworkspace' && (
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <Eye className="h-4 w-4"/>
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>View Subworkspace</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to view the subworkspace &#34;{service.name}&#34;?
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction asChild>
+                                                    <Link href={`/`}>
+                                                        <Button variant="default">View</Button>
+                                                    </Link>
+                                                </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                )}
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <Power className="h-4 w-4"/>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>{service.status ? "Stop" : "Start"} Service</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to {service.status ? "stop" : "start"} the service &#34;{service.name}&#34;?
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleToggleStopAndStartService(service)}>
+                                                {service.status ? "Stop" : "Start"}
+                                            </AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
+                                <AlertDialog>
+                                    <AlertDialogTrigger asChild>
+                                        <Button variant="ghost" size="icon">
+                                            <Trash2 className="h-4 w-4"/>
+                                        </Button>
+                                    </AlertDialogTrigger>
+                                    <AlertDialogContent>
+                                        <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete Service</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                                Are you sure you want to delete the service &#34;{service.name}&#34;? This action cannot be undone.
+                                            </AlertDialogDescription>
+                                        </AlertDialogHeader>
+                                        <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction onClick={() => handleDeleteService(service.name)}>Delete</AlertDialogAction>
+                                        </AlertDialogFooter>
+                                    </AlertDialogContent>
+                                </AlertDialog>
                             </TableCell>
                         </TableRow>
                     ))}
@@ -375,5 +418,5 @@ const UserDetailPage = ({params}: PropsParams) => {
     )
 }
 
-export default UserDetailPage
+export default WorkSpaceDetailPage
 
