@@ -70,9 +70,10 @@ const StatsCard = ({ title, value, icon: Icon, description, progress }: {
 );
 
 // Reusable WorkspaceTable Component
-const WorkspaceTable = ({ workspaces, onToggleStatus }: {
+const WorkspaceTable = ({ workspaces, onToggleStatus, loadingWorkspace }: {
     workspaces: Workspace[];
     onToggleStatus: (workspace: Workspace) => void;
+    loadingWorkspace: string | null;
 }) => (
     <div className="rounded-md border flex-1 overflow-y-auto">
         <Table>
@@ -85,7 +86,11 @@ const WorkspaceTable = ({ workspaces, onToggleStatus }: {
             </TableHeader>
             <TableBody>
                 {workspaces.map((workspace) => (
-                    <TableRow key={workspace.uuid} className="hover:bg-gray-50 dark:hover:bg-gray-800">
+                    <TableRow
+                        key={workspace.uuid}
+                        className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
+                        onClick={() => window.location.href = `/workspace/${workspace.name}`} // Make the row clickable
+                    >
                         <TableCell className="font-medium">
                             <div className="flex items-center">
                                 <Avatar className="h-8 w-8 mr-2">
@@ -105,18 +110,31 @@ const WorkspaceTable = ({ workspaces, onToggleStatus }: {
                             </div>
                         </TableCell>
                         <TableCell className="text-right">
-                            {/* Directly link to the workspace details page */}
-                            <Link href={`/workspace/${workspace.name}`}>
-                                <Button variant="ghost" size="icon">
-                                    <Eye className="h-4 w-4" />
+                            {/* View Workspace Detail Button */}
+                            <Link href={`/workspace/${workspace.name}`} passHref>
+                                <Button
+                                    variant="ghost"
+                                    size="icon"
+                                    onClick={(e) => e.stopPropagation()} // Prevent row click when clicking the button
+                                >
+                                    <Eye className="h-4 w-4 text-purple-500" />
                                 </Button>
                             </Link>
 
                             {/* Enable/Disable Workspace */}
                             <AlertDialog>
                                 <AlertDialogTrigger asChild>
-                                    <Button variant="ghost" size="icon">
-                                        <Power className="h-4 w-4" />
+                                    <Button
+                                        variant="ghost"
+                                        size="icon"
+                                        disabled={loadingWorkspace === workspace.uuid}
+                                        onClick={(e) => e.stopPropagation()} // Prevent row click when clicking the button
+                                    >
+                                        {loadingWorkspace === workspace.uuid ? (
+                                            <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
+                                        ) : (
+                                            <Power className={`h-4 w-4 ${workspace.isActive ? "text-red-500" : "text-green-500"}`} />
+                                        )}
                                     </Button>
                                 </AlertDialogTrigger>
                                 <AlertDialogContent>
@@ -131,7 +149,10 @@ const WorkspaceTable = ({ workspaces, onToggleStatus }: {
                                     <AlertDialogFooter>
                                         <AlertDialogCancel>Cancel</AlertDialogCancel>
                                         <AlertDialogAction
-                                            onClick={() => onToggleStatus(workspace)}
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // Prevent row click when clicking the action
+                                                onToggleStatus(workspace);
+                                            }}
                                             className={workspace.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
                                         >
                                             {workspace.isActive ? "Disable" : "Enable"}
@@ -164,6 +185,7 @@ export function WorkspaceManagement() {
 
     const [enableWorkspace] = useEnableWorkspaceMutation();
     const [disableWorkspace] = useDisableWorkspaceMutation();
+    const [loadingWorkspace, setLoadingWorkspace] = useState<string | null>(null);
 
     const { data: workspaces, isLoading, isError, refetch } = useGetAllWorkSpacesQuery() as {
         data: Workspaces | undefined;
@@ -192,63 +214,45 @@ export function WorkspaceManagement() {
 
     // Handle workspace status toggle with toast notifications
     const handleToggleWorkspaceStatus = async (workspace: Workspace) => {
+        setLoadingWorkspace(workspace.uuid); // Set loading state for the specific workspace
+    
         try {
             let result;
             if (workspace.isActive) {
-                // Disable the workspace
                 result = await disableWorkspace({ name: workspace.name }).unwrap();
             } else {
-                // Enable the workspace
                 result = await enableWorkspace({ name: workspace.name }).unwrap();
             }
-
-            // Success notification
+    
             toast({
                 title: "Success",
                 description: `Workspace "${workspace.name}" has been ${workspace.isActive ? "disabled" : "enabled"} successfully.`,
                 variant: "success",
                 duration: 3000,
             });
-
-            console.log("Workspace status toggled:", result);
-
-            // Refresh data
+    
             refetch();
         } catch (err) {
             const error = err as ErrorResponse;
-
-            console.log("Failed to toggle workspace status:", error);
-
-            // Error handling with toast notifications
-            if (
-                error?.status === "PARSING_ERROR" &&
-                error?.originalStatus === 200
-            ) {
+    
+            if (error?.status === "PARSING_ERROR" && error?.originalStatus === 200) {
                 toast({
                     title: "Success",
-                    description:
-                        error?.data?.message ||
-                        `Workspace "${workspace.name}" has been ${workspace.isActive ? "disabled" : "enabled"} successfully.`,
+                    description: error?.data?.message || `Workspace "${workspace.name}" has been ${workspace.isActive ? "disabled" : "enabled"} successfully.`,
                     variant: "success",
                     duration: 3000,
                 });
-
-                // Refresh data
                 refetch();
             } else {
                 toast({
                     title: "Error",
-                    description:
-                        error?.data?.message ||
-                        `Failed to ${workspace.isActive ? "disable" : "enable"} workspace. Please try again.`,
+                    description: error?.data?.message || `Failed to ${workspace.isActive ? "disable" : "enable"} workspace. Please try again.`,
                     variant: "error",
                     duration: 5000,
                 });
             }
         } finally {
-            // Cleanup logic (if needed)
-            // For example, reset any temporary state or close modals
-            console.log("Workspace status toggle process completed.");
+            setLoadingWorkspace(null); // Clear loading state
         }
     };
 
@@ -335,7 +339,7 @@ export function WorkspaceManagement() {
                             />
                         </div>
                     </div>
-                    <WorkspaceTable workspaces={currentWorkspaces} onToggleStatus={handleToggleWorkspaceStatus} />
+                    <WorkspaceTable workspaces={currentWorkspaces} onToggleStatus={handleToggleWorkspaceStatus} loadingWorkspace={loadingWorkspace} />
                     <div className="flex items-center justify-between">
                         <p className="text-sm text-muted-foreground">
                             Showing {indexOfFirstWorkspace + 1} to {Math.min(indexOfLastWorkspace, filteredWorkspaces.length)} of {filteredWorkspaces.length} workspaces
@@ -367,8 +371,8 @@ export function WorkspaceManagement() {
                     {filteredWorkspaces.filter((workspace) => workspace.isActive).length > 0 ? (
                         <WorkspaceTable
                             workspaces={filteredWorkspaces.filter((workspace) => workspace.isActive)}
-                            onToggleStatus={handleToggleWorkspaceStatus}
-                        />
+                            onToggleStatus={handleToggleWorkspaceStatus} 
+                            loadingWorkspace={loadingWorkspace}                        />
                     ) : (
                         <div className="h-[600px] w-full grid place-content-center">
                             <EmptyState message="No active workspaces found." />
@@ -381,6 +385,7 @@ export function WorkspaceManagement() {
                         <WorkspaceTable
                             workspaces={filteredWorkspaces.filter((workspace) => !workspace.isActive)}
                             onToggleStatus={handleToggleWorkspaceStatus}
+                            loadingWorkspace={loadingWorkspace}
                         />
                     ) : (
                         <div className="h-[600px] w-full grid place-content-center">
