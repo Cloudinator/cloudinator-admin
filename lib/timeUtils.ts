@@ -1,25 +1,48 @@
 export function parseTimeSince(timeSince: string): string {
-    const [value, unit] = timeSince.split(' ');
-    const numericValue = parseInt(value, 10);
+  // Handle invalid input
+  if (!timeSince || typeof timeSince !== "string") {
+    return "Just now";
+  }
 
-    if (isNaN(numericValue)) {
-        return "Just now"; // Handle invalid numeric values
-    }
+  // Split the input string into value and unit
+  const parts = timeSince.split(" ");
+  if (parts.length < 2) {
+    return "Just now";
+  }
 
-    switch (unit) {
-        case 'sec':
-        case 'secs':
-            return `${numericValue} sec ago`;
-        case 'min':
-        case 'mins':
-            return `${numericValue} min ago`;
-        case 'hr':
-        case 'hrs':
-            return `${numericValue} hr ago`;
-        case 'day':
-        case 'days':
-            return `${numericValue} day ago`;
-        default:
-            return timeSince; // Return the original string if the unit is unknown
-    }
+  const [value, unit] = parts;
+  const numericValue = parseInt(value, 10);
+
+  // Handle invalid numeric values
+  if (isNaN(numericValue)) {
+    return "Just now";
+  }
+
+  // Normalize the unit to handle plural and singular forms
+  const normalizedUnit = unit.toLowerCase().replace(/s$/, ""); // Remove trailing 's' for plural forms
+
+  // Convert hours to days if over 24
+  if (normalizedUnit === "hr" && numericValue >= 24) {
+    const days = Math.floor(numericValue / 24);
+    return `${days} ${days === 1 ? "day" : "days"} ago`;
+  }
+
+  // Map normalized units to their display names
+  const unitMap: Record<string, string> = {
+    sec: "second",
+    min: "minute",
+    hr: "hour",
+    day: "day",
+    week: "week",
+    month: "month",
+    year: "year",
+  };
+
+  // Get the display unit from the map
+  const displayUnit = unitMap[normalizedUnit] || unit; // Fallback to the original unit if not found
+
+  // Handle pluralization
+  const pluralizedUnit = numericValue === 1 ? displayUnit : `${displayUnit}s`;
+
+  return `${numericValue} ${pluralizedUnit} ago`;
 }
