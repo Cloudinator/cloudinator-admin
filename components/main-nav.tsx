@@ -12,20 +12,31 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { useGetAllWorkSpacesQuery } from "@/redux/api/projectApi";
+import { useGetAllUserProfileQuery } from "@/redux/api/userApi";
 
 type NavItem = {
     title: string;
     href: string;
     icon: React.ComponentType<{ className?: string }>;
     badge?: string;
+    badge2?: string;
 };
+
+type Workspace = {
+    uuid: string;
+    name: string;
+    isActive: boolean;
+};
+
+type Workspaces = Workspace[];
 
 export const navItems: NavItem[] = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-    { title: "Workspace", href: "/workspace", icon: Plus, badge: "3" },
-    { title: "Backup", href: "/backup", icon: MessageSquare, badge: "8" },
+    { title: "Workspace", href: "/workspace", icon: Plus, badge: "-" },
+    { title: "Backup", href: "/backup", icon: MessageSquare },
     { title: "Domain", href: "/domain", icon: Box },
-    { title: "Users", href: "/users", icon: Users },
+    { title: "Users", href: "/users", icon: Users, badge2: "-" },
     { title: "Settings", href: "/account", icon: Cog },
 ];
 
@@ -36,10 +47,32 @@ interface MainNavProps {
 export function MainNav({ isCollapsed }: MainNavProps) {
     const pathname = usePathname();
 
+    const { data: workspaces } = useGetAllWorkSpacesQuery() as {
+        data: Workspaces | undefined;
+        isLoading: boolean;
+        isError: boolean;
+        refetch: () => void;
+    };
+    const totalWorkspaces = workspaces?.length || 0;
+
+    const { data: users = [] } = useGetAllUserProfileQuery();
+    const totalUsers = users.length || 0;
+
+    // Update the navItems with dynamic badge2 value
+    const updatedNavItems = navItems.map((item) => {
+        if (item.title === "Users") {
+            return {
+                ...item,
+                badge2: totalUsers.toString(), // Set badge2 to the total number of users
+            };
+        }
+        return item;
+    });
+
     return (
         <TooltipProvider delayDuration={0}>
             <nav className="flex flex-col gap-2 p-2">
-                {navItems.map((item, index) => (
+                {updatedNavItems.map((item, index) => (
                     <Tooltip key={index}>
                         <TooltipTrigger asChild>
                             <Link
@@ -58,7 +91,12 @@ export function MainNav({ isCollapsed }: MainNavProps) {
                                         <span className="flex-grow">{item.title}</span>
                                         {item.badge && (
                                             <Badge variant="secondary" className="ml-auto">
-                                                {item.badge}
+                                                {totalWorkspaces}
+                                            </Badge>
+                                        )}
+                                        {item.badge2 && (
+                                            <Badge variant="secondary" className="ml-auto">
+                                                {item.badge2}
                                             </Badge>
                                         )}
                                     </>
@@ -69,7 +107,10 @@ export function MainNav({ isCollapsed }: MainNavProps) {
                             <TooltipContent side="right" className="flex items-center gap-4">
                                 {item.title}
                                 {item.badge && (
-                                    <Badge variant="secondary">{item.badge}</Badge>
+                                    <Badge variant="secondary">{totalWorkspaces}</Badge>
+                                )}
+                                {item.badge2 && (
+                                    <Badge variant="secondary">{item.badge2}</Badge>
                                 )}
                             </TooltipContent>
                         )}

@@ -9,7 +9,7 @@ import {
     useStartServiceDeploymentMutation,
     useStopServiceDeploymentMutation
 } from "@/redux/api/projectApi";
-import { ChevronLeft, ChevronRight, Database, ExternalLink, Eye, Folder, GitBranch, Globe, Layout, Power, Search, Server, Share2, Trash2 } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Database, ExternalLink, Eye, Folder, GitBranch, Globe, Layout, LayoutDashboard, Loader2, Power, Search, Server, Share2, Trash2 } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -40,6 +40,7 @@ import {
     AlertDialogTitle,
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
+import Loading from "@/components/Loading";
 
 export type PropsParams = {
     params: Promise<{ name: string }>
@@ -95,37 +96,41 @@ interface ErrorResponse {
 function getServiceIcon(type: ServiceType['type']) {
     switch (type) {
         case 'all':
-            return <Folder className="w-5 h-5 text-yellow-500"/>;
+            return <Folder className="w-5 h-5 text-yellow-500" />;
         case 'frontend':
-            return <Layout className="w-5 h-5 text-purple-600"/>;
+            return <Layout className="w-5 h-5 text-purple-600" />;
         case 'backend':
-            return <Server className="w-5 h-5 text-pink-600"/>;
+            return <Server className="w-5 h-5 text-pink-600" />;
         case 'database':
-            return <Database className="w-5 h-5 text-orange-600"/>;
+            return <Database className="w-5 h-5 text-orange-600" />;
         case 'subworkspace':
-            return <Share2 className="w-5 h-5 text-blue-600"/>;
+            return <Share2 className="w-5 h-5 text-blue-600" />;
     }
 }
 
-const Breadcrumb = ({ children }: { children: React.ReactNode }) => (
+const Breadcrumb = ({ items }: { items: { name: string; href: string }[] }) => (
     <nav className="flex" aria-label="Breadcrumb">
         <ol className="inline-flex items-center space-x-1 md:space-x-3">
-            {children}
+            <li className="inline-flex items-center">
+                <Link href="/" className="inline-flex items-center text-sm font-medium text-gray-700 hover:text-purple-600">
+                    <LayoutDashboard className="w-4 h-4 mr-2" />
+                    Dashboard
+                </Link>
+            </li>
+            {items.map((item, index) => (
+                <li key={item.name} className="inline-flex items-center">
+                    <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
+                    {index === items.length - 1 ? (
+                        <span className="text-sm font-medium text-gray-500">{decodeURIComponent(item.name).split(' ').map(word => <span key={word}>{word} </span>)}</span>
+                    ) : (
+                        <Link href={item.href} className="text-sm font-medium text-gray-700 hover:text-purple-600">
+                            {decodeURIComponent(item.name).split(' ').map(word => <span key={word}>{word} </span>)}
+                        </Link>
+                    )}
+                </li>
+            ))}
         </ol>
     </nav>
-);
-
-const BreadcrumbItem = ({ children }: { children: React.ReactNode }) => (
-    <li className="inline-flex items-center">
-        <span className="mx-2 text-gray-400 text-sm">/</span>
-        {children}
-    </li>
-);
-
-const BreadcrumbLink = ({ href, children }: { href: string; children: React.ReactNode }) => (
-    <Link href={href} className="text-sm font-medium text-gray-700 hover:text-blue-600">
-        {children}
-    </Link>
 );
 
 const UserDetailPage = ({ params }: PropsParams) => {
@@ -137,10 +142,12 @@ const UserDetailPage = ({ params }: PropsParams) => {
     const [deleteService] = useDeleteServiceDeploymentMutation();
     const [stopService] = useStopServiceDeploymentMutation();
     const [startService] = useStartServiceDeploymentMutation();
+    const [isLoading, setIsLoading] = useState<boolean>(true);
+
 
     const { toast } = useToast();
 
-    const { data } = useGetWorkSpaceByUserNameQuery(
+    const { data, isLoading: isWorkspacesLoading } = useGetWorkSpaceByUserNameQuery(
         { username: projectName }
     )
 
@@ -150,17 +157,29 @@ const UserDetailPage = ({ params }: PropsParams) => {
         workspaces.length > 0 ? workspaces[0].name : ""
     );
 
-    const { data: servicesData, refetch: data1 } = useGetServiceDeploymentQuery({
+    // Fetch services with loading state
+    const { data: servicesData, isLoading: isServicesLoading, refetch: data1 } = useGetServiceDeploymentQuery({
         workspaceName: selectedWorkspace,
         size: 10,
         page: 0,
-    }) as unknown as { data: ServiceDeploymentResponse, refetch: () => void };
+    }) as unknown as { data: ServiceDeploymentResponse, isLoading: boolean, refetch: () => void };
 
-    const { data: subWorkspaceData, refetch: data2 } = useGetSubWorkspacesQuery({
+    // Fetch subworkspaces with loading state
+    const { data: subWorkspaceData, isLoading: isSubWorkspacesLoading, refetch: data2 } = useGetSubWorkspacesQuery({
         workspaceName: selectedWorkspace,
         size: 10,
         page: 0,
-    }) as unknown as { data: SubWorkSpaceResponse, refetch: () => void };
+    }) as unknown as { data: SubWorkSpaceResponse, isLoading: boolean, refetch: () => void };
+
+    // Combine loading states
+    const isPageLoading = isWorkspacesLoading || isServicesLoading || isSubWorkspacesLoading;
+
+    useEffect(() => {
+        // Set isLoading to false when all data is fetched
+        if (!isWorkspacesLoading && !isServicesLoading && !isSubWorkspacesLoading) {
+            setIsLoading(false);
+        }
+    }, [isWorkspacesLoading, isServicesLoading, isSubWorkspacesLoading]);
 
     const combinedResults = useMemo(() => {
         const services = servicesData?.results || [];
@@ -178,6 +197,19 @@ const UserDetailPage = ({ params }: PropsParams) => {
     useEffect(() => {
         params.then(({ name }) => setProjectName(name))
     }, [params])
+
+    // Define breadcrumb items dynamically
+    const breadcrumbItems = [
+        { name: 'Users', href: '/users' },
+        { name: projectName, href: `/users/${projectName}` },
+    ];
+
+    useEffect(() => {
+        if (workspaces && workspaces.length > 0) {
+            // Automatically select the first workspace
+            setSelectedWorkspace(workspaces[0].name);
+        }
+    }, [workspaces]); 
 
     const indexOfLastUser = currentPage * usersPerPage
     const indexOfFirstUser = indexOfLastUser - usersPerPage
@@ -240,18 +272,23 @@ const UserDetailPage = ({ params }: PropsParams) => {
         return null;
     }
 
+    // Loading state
+    if (isPageLoading || isLoading) {
+        return (
+            <div className="flex items-center justify-center min-h-screen">
+                <div className="flex flex-col items-center gap-2">
+                    <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+                    <Loading />
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="p-6">
-            <Breadcrumb>
-                <BreadcrumbItem>
-                    <BreadcrumbLink href="/users">users</BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbItem>
-                    <span className="text-sm font-medium text-gray-500">{projectName}</span>
-                </BreadcrumbItem>
-            </Breadcrumb>
+            <Breadcrumb items={breadcrumbItems} />
 
-            <h1 className="text-2xl font-bold mt-4 mb-6">Profile Details for {projectName}</h1>
+            <h1 className="text-3xl font-bold mt-4 mb-6 text-purple-500">{decodeURIComponent(projectName)}</h1>
 
             <div className="flex gap-4 mb-6">
                 <Select
@@ -259,7 +296,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
                     onValueChange={setSelectedWorkspace}
                 >
                     <SelectTrigger className="w-[200px]">
-                        <SelectValue placeholder="Select Workspace"/>
+                        <SelectValue placeholder="Select Workspace" />
                     </SelectTrigger>
                     <SelectContent>
                         {Array.isArray(workspaces) && workspaces.map((workspace: Workspace) => (
@@ -271,7 +308,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
                 </Select>
 
                 <div className="relative flex-grow">
-                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400"/>
+                    <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400" />
                     <Input
                         type="text"
                         placeholder="Search Projects..."
@@ -307,104 +344,118 @@ const UserDetailPage = ({ params }: PropsParams) => {
                     </TableRow>
                 </TableHeader>
                 <TableBody>
-                    {currentUsers.map((service: ServiceType) => (
-                        <TableRow key={service.name}>
-                            <TableCell>{service.name}</TableCell>
-                            <TableCell>
-                                <div className="flex items-center">
-                                    {getServiceIcon(service.type)}
-                                    <span className="ml-2 capitalize">{service.type}</span>
+                    {filteredServices.length === 0 ? (
+                        <TableRow>
+                            <TableCell colSpan={6} className="text-center py-8">
+                                <div className="flex flex-col items-center justify-center space-y-2 h-[500px]">
+                                    <Folder className="h-8 w-8 text-muted-foreground" />
+                                    <p className="text-muted-foreground">No projects or services found.</p>
+                                    <p className="text-sm text-muted-foreground">
+                                        Try adjusting your search or filters.
+                                    </p>
                                 </div>
                             </TableCell>
-                            <TableCell>
-                                <a href={service.gitUrl} target="_blank" rel="noopener noreferrer"
-                                   className="flex items-center text-blue-600 hover:underline">
-                                    <GitBranch className="w-4 h-4 mr-2"/>
-                                    <span className="truncate">{service.gitUrl}</span>
-                                    <ExternalLink className="w-3 h-3 ml-1"/>
-                                </a>
-                            </TableCell>
-                            <TableCell>{service.branch}</TableCell>
-                            <TableCell>
-                                {service.type !== 'subworkspace' && (
-                                    <a href={`https://${service.subdomain}.cloudinator.cloud`} target="_blank"
-                                       rel="noopener noreferrer"
-                                       className="flex items-center text-green-600 hover:underline">
-                                        <Globe className="w-4 h-4 mr-2"/>
-                                        <span className="truncate">{service.subdomain}</span>
-                                        <ExternalLink className="w-3 h-3 ml-1"/>
+                        </TableRow>
+                    ) : (
+                        currentUsers.map((service: ServiceType) => (
+                            <TableRow key={service.name}>
+                                <TableCell>{service.name}</TableCell>
+                                <TableCell>
+                                    <div className="flex items-center">
+                                        {getServiceIcon(service.type)}
+                                        <span className="ml-2 capitalize">{service.type}</span>
+                                    </div>
+                                </TableCell>
+                                <TableCell>
+                                    <a href={service.gitUrl} target="_blank" rel="noopener noreferrer"
+                                        className="flex items-center text-blue-600 hover:underline">
+                                        <GitBranch className="w-4 h-4 mr-2" />
+                                        <span className="truncate">{service.gitUrl}</span>
+                                        <ExternalLink className="w-3 h-3 ml-1" />
                                     </a>
-                                )}
-                            </TableCell>
-                            <TableCell>
-                                {service.type === 'subworkspace' && (
+                                </TableCell>
+                                <TableCell>{service.branch}</TableCell>
+                                <TableCell>
+                                    {service.type !== 'subworkspace' && (
+                                        <a href={`https://${service.subdomain}.cloudinator.cloud`} target="_blank"
+                                            rel="noopener noreferrer"
+                                            className="flex items-center text-green-600 hover:underline">
+                                            <Globe className="w-4 h-4 mr-2" />
+                                            <span className="truncate">{service.subdomain}</span>
+                                            <ExternalLink className="w-3 h-3 ml-1" />
+                                        </a>
+                                    )}
+                                </TableCell>
+                                <TableCell>
+                                    {service.type === 'subworkspace' && (
+                                        <AlertDialog>
+                                            <AlertDialogTrigger asChild>
+                                                <Button variant="ghost" size="icon">
+                                                    <Eye className="h-4 w-4" />
+                                                </Button>
+                                            </AlertDialogTrigger>
+                                            <AlertDialogContent>
+                                                <AlertDialogHeader>
+                                                    <AlertDialogTitle>View Subworkspace</AlertDialogTitle>
+                                                    <AlertDialogDescription>
+                                                        Are you sure you want to view the subworkspace &#34;{service.name}&#34;?
+                                                    </AlertDialogDescription>
+                                                </AlertDialogHeader>
+                                                <AlertDialogFooter>
+                                                    <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                    <AlertDialogAction asChild>
+                                                        <Link href={`/`}>
+                                                            <Button variant="default">View</Button>
+                                                        </Link>
+                                                    </AlertDialogAction>
+                                                </AlertDialogFooter>
+                                            </AlertDialogContent>
+                                        </AlertDialog>
+                                    )}
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon">
-                                                <Eye className="h-4 w-4" />
+                                                <Power className="h-4 w-4" />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>
                                             <AlertDialogHeader>
-                                                <AlertDialogTitle>View Subworkspace</AlertDialogTitle>
+                                                <AlertDialogTitle>{service.status ? "Stop" : "Start"} Service</AlertDialogTitle>
                                                 <AlertDialogDescription>
-                                                    Are you sure you want to view the subworkspace &#34;{service.name}&#34;?
+                                                    Are you sure you want to {service.status ? "stop" : "start"} the service &#34;{service.name}&#34;?
                                                 </AlertDialogDescription>
                                             </AlertDialogHeader>
                                             <AlertDialogFooter>
                                                 <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                                <AlertDialogAction asChild>
-                                                    <Link href={`/`}>
-                                                        <Button variant="default">View</Button>
-                                                    </Link>
+                                                <AlertDialogAction onClick={() => handleToggleStopAndStartService(service)}>
+                                                    {service.status ? "Stop" : "Start"}
                                                 </AlertDialogAction>
                                             </AlertDialogFooter>
                                         </AlertDialogContent>
                                     </AlertDialog>
-                                )}
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <Power className="h-4 w-4"/>
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>{service.status ? "Stop" : "Start"} Service</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Are you sure you want to {service.status ? "stop" : "start"} the service &#34;{service.name}&#34;?
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleToggleStopAndStartService(service)}>
-                                                {service.status ? "Stop" : "Start"}
-                                            </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                                <AlertDialog>
-                                    <AlertDialogTrigger asChild>
-                                        <Button variant="ghost" size="icon">
-                                            <Trash2 className="h-4 w-4"/>
-                                        </Button>
-                                    </AlertDialogTrigger>
-                                    <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                            <AlertDialogTitle>Delete Service</AlertDialogTitle>
-                                            <AlertDialogDescription>
-                                                Are you sure you want to delete the service &#34;{service.name}&#34;? This action cannot be undone.
-                                            </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                            <AlertDialogAction onClick={() => handleDeleteService(service.name)}>Delete</AlertDialogAction>
-                                        </AlertDialogFooter>
-                                    </AlertDialogContent>
-                                </AlertDialog>
-                            </TableCell>
-                        </TableRow>
-                    ))}
+                                    <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                            <Button variant="ghost" size="icon">
+                                                <Trash2 className="h-4 w-4" />
+                                            </Button>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                                <AlertDialogTitle>Delete Service</AlertDialogTitle>
+                                                <AlertDialogDescription>
+                                                    Are you sure you want to delete the service &#34;{service.name}&#34;? This action cannot be undone.
+                                                </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                                <AlertDialogAction onClick={() => handleDeleteService(service.name)}>Delete</AlertDialogAction>
+                                            </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                    </AlertDialog>
+                                </TableCell>
+                            </TableRow>
+                        ))
+                    )}
                 </TableBody>
             </Table>
             <div className="flex items-center justify-between">
@@ -418,7 +469,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
                         onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
                         disabled={currentPage === 1}
                     >
-                        <ChevronLeft className="h-4 w-4"/>
+                        <ChevronLeft className="h-4 w-4" />
                         Previous
                     </Button>
                     <Button
@@ -428,7 +479,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
                         disabled={currentPage === totalPages}
                     >
                         Next
-                        <ChevronRight className="h-4 w-4"/>
+                        <ChevronRight className="h-4 w-4" />
                     </Button>
                 </div>
             </div>

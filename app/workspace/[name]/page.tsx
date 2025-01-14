@@ -117,10 +117,10 @@ const Breadcrumb = ({ items }: { items: { name: string; href: string }[] }) => (
                 <li key={item.name} className="inline-flex items-center">
                     <ChevronRight className="w-4 h-4 mx-2 text-gray-400" />
                     {index === items.length - 1 ? (
-                        <span className="text-sm font-medium text-gray-500">{item.name}</span>
+                        <span className="text-sm font-medium text-gray-500">{decodeURIComponent(item.name).split(' ').map(word => <span key={word}>{word} </span>)}</span>
                     ) : (
                         <Link href={item.href} className="text-sm font-medium text-gray-700 hover:text-purple-600">
-                            {item.name}
+                            {decodeURIComponent(item.name).split(' ').map(word => <span key={word}>{word} </span>)}
                         </Link>
                     )}
                 </li>
@@ -331,7 +331,7 @@ const WorkSpaceDetailPage = ({ params }: PropsParams) => {
         <div className="p-8">
             <Breadcrumb items={breadcrumbItems} />
 
-            <h1 className="text-3xl font-bold mt-4 mb-6 text-purple-500 font-bold">{projectName}</h1>
+            <h1 className="text-3xl font-bold mt-4 mb-6 text-purple-500">{decodeURIComponent(projectName)}</h1>
 
             <div className="flex gap-4 mb-6">
                 <Select
