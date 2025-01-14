@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Box, Cog, LayoutDashboard, Loader2, MessageSquare, Plus, Users } from 'lucide-react';
+import { Box, Cog, LayoutDashboard, MessageSquare, Plus, Users } from 'lucide-react';
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
