@@ -335,12 +335,12 @@ const UserDetailPage = ({ params }: PropsParams) => {
             <Table>
                 <TableHeader>
                     <TableRow>
-                        <TableHead>Name</TableHead>
-                        <TableHead>Type</TableHead>
-                        <TableHead>Git URL</TableHead>
-                        <TableHead>Branch</TableHead>
-                        <TableHead>Subdomain</TableHead>
-                        <TableHead>Actions</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Name</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Type</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Git URL</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Branch</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Subdomain</TableHead>
+                        <TableHead className="text-purple-500 font-semibold">Actions</TableHead>
                     </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -415,7 +415,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
                                     <AlertDialog>
                                         <AlertDialogTrigger asChild>
                                             <Button variant="ghost" size="icon">
-                                                <Power className="h-4 w-4" />
+                                                <Power className="h-4 w-4 text-red-500" />
                                             </Button>
                                         </AlertDialogTrigger>
                                         <AlertDialogContent>

@@ -274,8 +274,13 @@ export function WorkspaceManagement() {
 
     return (
         <div className="space-y-6">
-            <div className="flex justify-between items-center">
-                <h2 className="text-3xl font-bold tracking-tight">Workspace Management</h2>
+            <div className="flex flex-col items-center space-y-4 p-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg transform transition-all  hover:shadow-xl">
+                <h1 className="text-4xl font-semibold tracking-tight text-white">
+                    Workspace Management{" "}
+                    <span className="text-purple-200 font-bold hover:text-purple-300 transition-colors duration-300">
+                    </span>
+                    <span role="img" aria-label="wave" className="animate-wave">☁️</span>
+                </h1>
             </div>
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <StatsCard

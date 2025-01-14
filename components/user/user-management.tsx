@@ -48,14 +48,16 @@ export function UserManagement() {
     const [enableUser] = useEnableUserMutation();
     const [deleteUser] = useDeleteUserMutation();
 
-    const filteredUsers = users.filter((user: User) => {
+    const filteredUsers = users
+    .filter((user: User) => {
         const searchLower = searchTerm.toLowerCase();
         return (
             user.username.toLowerCase().includes(searchLower) ||
             user.email.toLowerCase().includes(searchLower) ||
             String(user.isEnabled).toLowerCase().includes(searchLower)
         );
-    });
+    })
+    .sort((a: User, b: User) => a.username.localeCompare(b.username));
 
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
@@ -179,7 +181,7 @@ export function UserManagement() {
             const error = err as ErrorResponse;
             if (error?.status === "PARSING_ERROR" && error?.originalStatus === 200) {
                 toast({
-                    title: "Success",
+                    title: "Error",
                     description: error?.data || `User ${confirmAction.username} has been ${confirmAction.type === 'enable' ? 'enabled' : 'disabled'} successfully.`,
                     variant: "success",
                     duration: 5000,
@@ -224,8 +226,14 @@ export function UserManagement() {
     return (
         <div className="space-y-6">
             {/* Cards and Search */}
-            <div className="flex items-center justify-between">
-                <h1 className="text-3xl font-bold tracking-tight">User Management</h1>
+            <div className="flex flex-col items-center space-y-4 p-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg transform transition-all  hover:shadow-xl">
+                <h1 className="text-4xl font-semibold tracking-tight text-white">
+                    User Management{" "}
+                    <span className="text-purple-200 font-bold hover:text-purple-300 transition-colors duration-300">
+                        
+                    </span>
+                    <span role="img" aria-label="wave" className="animate-wave">👨‍💻</span>
+                </h1>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
