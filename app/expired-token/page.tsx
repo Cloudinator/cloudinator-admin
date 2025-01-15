@@ -40,7 +40,8 @@ export default function ExpiredTokenPage() {
 
         {/* Login Button */}
         <Button
-          onClick={() => router.push("https://oauth2.cloudinator.istad.co/")}
+          // onClick={() => router.push("https://oauth2.cloudinator.istad.co")}
+          onClick={() => router.push("http://localhost:8081/login")}
           className="w-full bg-purple-500/10 text-purple-600 dark:text-purple-400 border border-purple-500/20 hover:bg-purple-500/20 transition-colors"
         >
           Log In Again

@@ -103,7 +103,7 @@ export default function DashboardPageComponent() {
           <Link href="/workspace">
             <CardContent className="p-6">
               <div className="flex items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-purple-300 font-semibold">
+                <p className="text-sm font-medium text-white font-semibold">
                   Overall Project
                 </p>
                 <FolderKanban className="h-4 w-4 text-purple-300 animated-icon" />
@@ -122,7 +122,7 @@ export default function DashboardPageComponent() {
           <Link href="/users">
             <CardContent className="p-6">
               <div className="flex items-center justify-between space-y-0 pb-2">
-                <p className="text-sm font-medium text-purple-300 font-semibold">
+                <p className="text-sm font-medium text-white font-semibold">
                   Total Users
                 </p>
                 <Users className="h-4 w-4 text-purple-300 animated-icon" />
@@ -140,7 +140,7 @@ export default function DashboardPageComponent() {
         <Card className="animated-gradient border border-purple-500/20 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
           <CardContent className="p-6">
             <div className="flex items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium text-purple-300 font-semibold">
+              <p className="text-sm font-medium text-white font-semibold">
                 Total Success Rate
               </p>
               <Cloud className="h-4 w-4 text-purple-300 animated-icon" />
@@ -162,7 +162,7 @@ export default function DashboardPageComponent() {
         <Card className="animated-gradient border border-purple-500/20 rounded-lg shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105">
           <CardContent className="p-6">
             <div className="flex items-center justify-between space-y-0 pb-2">
-              <p className="text-sm font-medium text-purple-300 font-semibold">
+              <p className="text-sm font-medium text-white font-semibold">
                 Active Now
               </p>
               <div className="relative inline-block">
@@ -191,7 +191,7 @@ export default function DashboardPageComponent() {
                 Showing total build for the last 3 months
               </p>
               <div className="h-[350px]">
-                <AreaChart buildAnalysis={buildAnalysis} />
+                <AreaChart buildAnalysis={buildAnalysis} isLoading={isLoading} />
               </div>
             </div>
           </CardContent>

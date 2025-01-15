@@ -41,6 +41,8 @@ import {
     AlertDialogTrigger,
 } from "@/components/ui/alert-dialog";
 import Loading from "@/components/Loading";
+import UserProfileBanner from "@/components/user/UserProfileBanner";
+
 
 export type PropsParams = {
     params: Promise<{ name: string }>
@@ -144,6 +146,7 @@ const UserDetailPage = ({ params }: PropsParams) => {
     const [startService] = useStartServiceDeploymentMutation();
     const [isLoading, setIsLoading] = useState<boolean>(true);
 
+    const [noWorkspaceFound, setNoWorkspaceFound] = useState<boolean>(false);
 
     const { toast } = useToast();
 
@@ -204,12 +207,15 @@ const UserDetailPage = ({ params }: PropsParams) => {
         { name: projectName, href: `/users/${projectName}` },
     ];
 
+    // Select Workspace Automatically 
     useEffect(() => {
-        if (workspaces && workspaces.length > 0) {
-            // Automatically select the first workspace
-            setSelectedWorkspace(workspaces[0].name);
+        if (workspaces && workspaces.length === 0) {
+            setNoWorkspaceFound(true); // No workspace found
+        } else {
+            setNoWorkspaceFound(false); // Workspace(s) found
+            setSelectedWorkspace(workspaces[0]?.name || ""); // Select the first workspace
         }
-    }, [workspaces]); 
+    }, [workspaces]);
 
     const indexOfLastUser = currentPage * usersPerPage
     const indexOfFirstUser = indexOfLastUser - usersPerPage
@@ -284,13 +290,37 @@ const UserDetailPage = ({ params }: PropsParams) => {
         );
     }
 
+    if (noWorkspaceFound) {
+        return (
+            <div className="p-6">
+                <Breadcrumb items={breadcrumbItems} />
+                <UserProfileBanner name={projectName} />
+                <div className="flex flex-col items-center justify-center h-[400px]">
+                    <Folder className="w-12 h-12 text-purple-500 mb-4" />
+                    <h3 className="text-xl font-semibold text-purple-600">No Workspace Found</h3>
+                    <p className="text-sm text-purple-500">
+                        There are no workspaces associated with this user.
+                    </p>
+                </div>
+            </div>
+        );
+    }
+
     return (
         <div className="p-6">
+
             <Breadcrumb items={breadcrumbItems} />
 
-            <h1 className="text-3xl font-bold mt-4 mb-6 text-purple-500">{decodeURIComponent(projectName)}</h1>
+            {/* Page Header */}
+
+            {/* <h1 className="text-3xl font-bold mt-4 mb-6 text-purple-500">{decodeURIComponent(projectName)}</h1> */}
+            
+            {/* User Profile Banner */}
+            <UserProfileBanner name={projectName} />
 
             <div className="flex gap-4 mb-6">
+
+                {/* Select Workspace */}
                 <Select
                     value={selectedWorkspace}
                     onValueChange={setSelectedWorkspace}

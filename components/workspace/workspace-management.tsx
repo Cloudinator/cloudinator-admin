@@ -1,17 +1,7 @@
-"use client";
+"use client"
 
 import { useState, useMemo } from "react";
-import {
-  Search,
-  Briefcase,
-  Users,
-  Calendar,
-  ChevronLeft,
-  ChevronRight,
-  Eye,
-  Power,
-  Loader2,
-} from "lucide-react";
+import { Search, Briefcase, Users, Calendar, ChevronLeft, ChevronRight, Eye, Power, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import {
@@ -59,40 +49,34 @@ type Workspace = {
 type Workspaces = Workspace[];
 
 // Reusable StatsCard Component
-const StatsCard = ({
-  title,
-  value,
-  icon: Icon,
-  description,
-  progress,
-}: {
+const StatsCard = ({ title, value, icon: Icon, description, progress }: {
   title: string;
   value: string | number;
   icon: React.ElementType;
   description: string;
   progress?: number;
 }) => (
-  <Card>
+  <Card className="hover:scale-105 bg-gradient-to-br from-purple-500 via-indigo-500 to-purple-400 border border-purple-500/30 rounded-lg shadow-lg hover:shadow-xl transition-shadow transition-all ease-in-out duration-300">
     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-      <CardTitle className="text-sm font-medium text-purple-500 font-bold">
-        {title}
-      </CardTitle>
-      <Icon className="h-4 w-4 text-muted-foreground" />
+      <CardTitle className="text-sm font-medium text-white font-bold">{title}</CardTitle>
+      <Icon className="h-4 w-4 text-purple-400 hover:text-purple-300 transition-colors duration-300 animate-pulse" />
     </CardHeader>
     <CardContent>
-      <div className="text-2xl font-bold">{value}</div>
-      <p className="text-xs text-muted-foreground">{description}</p>
-      {progress !== undefined && <Progress value={progress} className="mt-2" />}
+      <div className="text-2xl font-bold text-white">{value}</div>
+      <p className="text-xs text-gray-100 mt-1">{description}</p>
+      {progress !== undefined && (
+        <Progress
+          value={progress}
+          className="mt-2 bg-gray-100"
+          style={{ backgroundColor: 'rgba(128, 0, 128, 0.1)' }}
+        />
+      )}
     </CardContent>
   </Card>
 );
 
 // Reusable WorkspaceTable Component
-const WorkspaceTable = ({
-  workspaces,
-  onToggleStatus,
-  loadingWorkspace,
-}: {
+const WorkspaceTable = ({ workspaces, onToggleStatus, loadingWorkspace }: {
   workspaces: Workspace[];
   onToggleStatus: (workspace: Workspace) => void;
   loadingWorkspace: string | null;
@@ -101,15 +85,9 @@ const WorkspaceTable = ({
     <Table>
       <TableHeader className="sticky top-0 bg-white dark:bg-gray-950 z-10">
         <TableRow>
-          <TableHead className="text-purple-500 font-semibold pl-3">
-            Workspace
-          </TableHead>
-          <TableHead className="text-center text-purple-500 font-semibold">
-            Status
-          </TableHead>
-          <TableHead className="text-right pr-5 text-purple-500 font-semibold">
-            Actions
-          </TableHead>
+          <TableHead className="text-purple-500 font-semibold pl-3">Workspace</TableHead>
+          <TableHead className="text-center text-purple-500 font-semibold">Status</TableHead>
+          <TableHead className="text-right pr-5 text-purple-500 font-semibold">Actions</TableHead>
         </TableRow>
       </TableHeader>
       <TableBody>
@@ -117,9 +95,7 @@ const WorkspaceTable = ({
           <TableRow
             key={workspace.uuid}
             className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
-            onClick={() =>
-              (window.location.href = `/workspace/${workspace.name}`)
-            } // Make the row clickable
+            onClick={() => window.location.href = `/workspace/${workspace.name}`} // Make the row clickable
           >
             <TableCell className="font-medium">
               <div className="flex items-center">
@@ -133,11 +109,7 @@ const WorkspaceTable = ({
               <div className="flex items-center justify-center">
                 <Badge
                   variant={workspace.isActive ? "default" : "secondary"}
-                  className={
-                    workspace.isActive
-                      ? "bg-green-500 hover:bg-green-600 text-white "
-                      : "bg-red-500 hover:bg-red-600 text-white"
-                  }
+                  className={workspace.isActive ? "bg-green-500 hover:bg-green-600 text-white " : "bg-red-500 hover:bg-red-600 text-white"}
                 >
                   {workspace.isActive ? "Active" : "Inactive"}
                 </Badge>
@@ -167,9 +139,7 @@ const WorkspaceTable = ({
                     {loadingWorkspace === workspace.uuid ? (
                       <Loader2 className="h-4 w-4 animate-spin text-purple-500" />
                     ) : (
-                      <Power
-                        className={`h-4 w-4 ${workspace.isActive ? "text-red-500" : "text-green-500"}`}
-                      />
+                      <Power className={`h-4 w-4 ${workspace.isActive ? "text-red-500" : "text-green-500"}`} />
                     )}
                   </Button>
                 </AlertDialogTrigger>
@@ -179,9 +149,7 @@ const WorkspaceTable = ({
                       {workspace.isActive ? "Disable" : "Enable"} Workspace
                     </AlertDialogTitle>
                     <AlertDialogDescription>
-                      Are you sure you want to{" "}
-                      {workspace.isActive ? "disable" : "enable"} the workspace
-                      &#34;{workspace.name}&#34;?
+                      Are you sure you want to {workspace.isActive ? "disable" : "enable"} the workspace &#34;{workspace.name}&#34;?
                     </AlertDialogDescription>
                   </AlertDialogHeader>
                   <AlertDialogFooter>
@@ -191,11 +159,7 @@ const WorkspaceTable = ({
                         e.stopPropagation(); // Prevent row click when clicking the action
                         onToggleStatus(workspace);
                       }}
-                      className={
-                        workspace.isActive
-                          ? "bg-red-500 hover:bg-red-600"
-                          : "bg-green-500 hover:bg-green-600"
-                      }
+                      className={workspace.isActive ? "bg-red-500 hover:bg-red-600" : "bg-green-500 hover:bg-green-600"}
                     >
                       {workspace.isActive ? "Disable" : "Enable"}
                     </AlertDialogAction>
@@ -210,6 +174,7 @@ const WorkspaceTable = ({
   </div>
 );
 
+
 interface ErrorResponse {
   status?: string;
   originalStatus?: number;
@@ -222,17 +187,13 @@ export function WorkspaceManagement() {
   const { toast } = useToast();
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const workspacesPerPage = 8;
+  const workspacesPerPage = 10;
 
   const [enableWorkspace] = useEnableWorkspaceMutation();
   const [disableWorkspace] = useDisableWorkspaceMutation();
   const [loadingWorkspace, setLoadingWorkspace] = useState<string | null>(null);
 
-  const {
-    data: workspaces,
-    isLoading,
-    refetch,
-  } = useGetAllWorkSpacesQuery() as {
+  const { data: workspaces, isLoading, isError, refetch } = useGetAllWorkSpacesQuery() as {
     data: Workspaces | undefined;
     isLoading: boolean;
     isError: boolean;
@@ -243,25 +204,19 @@ export function WorkspaceManagement() {
   const { data: countSubWorkspaces } = useCountAllSubWorkspaceQuery();
 
   const filteredWorkspaces = useMemo(() => {
-    return (
-      workspaces?.filter((workspace) =>
-        workspace.name.toLowerCase().includes(searchTerm.toLowerCase()),
-      ) || []
-    );
+    return workspaces?.filter((workspace) =>
+      workspace.name.toLowerCase().includes(searchTerm.toLowerCase())
+    ) || [];
   }, [workspaces, searchTerm]);
 
   const indexOfLastWorkspace = currentPage * workspacesPerPage;
   const indexOfFirstWorkspace = indexOfLastWorkspace - workspacesPerPage;
-  const currentWorkspaces = filteredWorkspaces.slice(
-    indexOfFirstWorkspace,
-    indexOfLastWorkspace,
-  );
+  const currentWorkspaces = filteredWorkspaces.slice(indexOfFirstWorkspace, indexOfLastWorkspace);
   const totalPages = Math.ceil(filteredWorkspaces.length / workspacesPerPage);
 
   const totalWorkspaces = workspaces?.length || 0;
   const activeWorkspaces = workspaces?.filter((w) => w.isActive).length || 0;
-  const total_projects =
-    Number(countService || 0) + Number(countSubWorkspaces || 0);
+  const total_projects = Number(countService || 0) + Number(countSubWorkspaces || 0);
 
   // Handle workspace status toggle with toast notifications
   const handleToggleWorkspaceStatus = async (workspace: Workspace) => {
@@ -288,9 +243,7 @@ export function WorkspaceManagement() {
       if (error?.status === "PARSING_ERROR" && error?.originalStatus === 200) {
         toast({
           title: "Success",
-          description:
-            error?.data?.message ||
-            `Workspace "${workspace.name}" has been ${workspace.isActive ? "disabled" : "enabled"} successfully.`,
+          description: error?.data?.message || `Workspace "${workspace.name}" has been ${workspace.isActive ? "disabled" : "enabled"} successfully.`,
           variant: "success",
           duration: 3000,
         });
@@ -298,9 +251,7 @@ export function WorkspaceManagement() {
       } else {
         toast({
           title: "Error",
-          description:
-            error?.data?.message ||
-            `Failed to ${workspace.isActive ? "disable" : "enable"} workspace. Please try again.`,
+          description: error?.data?.message || `Failed to ${workspace.isActive ? "disable" : "enable"} workspace. Please try again.`,
           variant: "error",
           duration: 5000,
         });
@@ -311,25 +262,30 @@ export function WorkspaceManagement() {
   };
 
   // Loading state
-  if (isLoading)
-    return (
-      <div className="flex items-center justify-center min-h-screen">
-        <div className="flex flex-col items-center gap-2">
-          <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
-          <Loading />
-        </div>
+  if (isLoading) return (
+    <div className="flex items-center justify-center min-h-screen">
+      <div className="flex flex-col items-center gap-2">
+        <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+        <Loading />
       </div>
-    );
+    </div>
+  );
+
+  // Error state
+  if (isError) return (
+    <div className="h-screen w-full grid place-content-center text-red-500">
+      Error Loading Workspaces, Please Try Again
+    </div>
+  );
 
   return (
     <div className="space-y-6">
       <div className="flex flex-col items-center space-y-4 p-6 bg-gradient-to-r from-purple-600 to-indigo-600 rounded-lg shadow-lg transform transition-all  hover:shadow-xl">
         <h1 className="text-4xl font-semibold tracking-tight text-white">
           Workspace Management{" "}
-          <span className="text-purple-200 font-bold hover:text-purple-300 transition-colors duration-300"></span>
-          <span role="img" aria-label="wave" className="animate-wave">
-            ☁️
+          <span className="text-purple-200 font-bold hover:text-purple-300 transition-colors duration-300">
           </span>
+          <span role="img" aria-label="wave" className="animate-wave">☁️</span>
         </h1>
       </div>
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -338,9 +294,7 @@ export function WorkspaceManagement() {
           value={totalWorkspaces}
           icon={Briefcase}
           description={`${activeWorkspaces} active, ${totalWorkspaces - activeWorkspaces} inactive`}
-          progress={
-            totalWorkspaces > 0 ? (activeWorkspaces / totalWorkspaces) * 100 : 0
-          }
+          progress={totalWorkspaces > 0 ? (activeWorkspaces / totalWorkspaces) * 100 : 0}
         />
         <StatsCard
           title="Total Members"
@@ -356,17 +310,9 @@ export function WorkspaceManagement() {
         />
         <StatsCard
           title="Avg Projects/Workspace"
-          value={
-            totalWorkspaces > 0
-              ? (total_projects / totalWorkspaces).toFixed(2)
-              : "N/A"
-          }
+          value={totalWorkspaces > 0 ? (total_projects / totalWorkspaces).toFixed(2) : "N/A"}
           icon={Calendar}
-          description={
-            totalWorkspaces > 0
-              ? "Average across all workspaces"
-              : "No workspaces available"
-          }
+          description={totalWorkspaces > 0 ? "Average across all workspaces" : "No workspaces available"}
         />
       </div>
       <Tabs defaultValue="all" className="space-y-4">
@@ -403,16 +349,20 @@ export function WorkspaceManagement() {
               />
             </div>
           </div>
-          <WorkspaceTable
-            workspaces={currentWorkspaces}
-            onToggleStatus={handleToggleWorkspaceStatus}
-            loadingWorkspace={loadingWorkspace}
-          />
+          {currentWorkspaces.length > 0 ? (
+            <WorkspaceTable
+              workspaces={currentWorkspaces}
+              onToggleStatus={handleToggleWorkspaceStatus}
+              loadingWorkspace={loadingWorkspace}
+            />
+          ) : (
+            <div className="h-[400px] w-full grid place-content-center">
+              <EmptyState message="No workspaces found" />
+            </div>
+          )}
           <div className="flex items-center justify-between">
             <p className="text-sm text-muted-foreground">
-              Showing {indexOfFirstWorkspace + 1} to{" "}
-              {Math.min(indexOfLastWorkspace, filteredWorkspaces.length)} of{" "}
-              {filteredWorkspaces.length} workspaces
+              Showing {indexOfFirstWorkspace + 1} to {Math.min(indexOfLastWorkspace, filteredWorkspaces.length)} of {filteredWorkspaces.length} workspaces
             </p>
             <div className="flex items-center space-x-2">
               <Button
@@ -427,9 +377,7 @@ export function WorkspaceManagement() {
               <Button
                 variant="outline"
                 size="sm"
-                onClick={() =>
-                  setCurrentPage((prev) => Math.min(prev + 1, totalPages))
-                }
+                onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
                 disabled={currentPage === totalPages}
               >
                 Next
@@ -440,15 +388,11 @@ export function WorkspaceManagement() {
         </TabsContent>
 
         <TabsContent value="active" className="space-y-4">
-          {filteredWorkspaces.filter((workspace) => workspace.isActive).length >
-          0 ? (
+          {filteredWorkspaces.filter((workspace) => workspace.isActive).length > 0 ? (
             <WorkspaceTable
-              workspaces={filteredWorkspaces.filter(
-                (workspace) => workspace.isActive,
-              )}
+              workspaces={filteredWorkspaces.filter((workspace) => workspace.isActive)}
               onToggleStatus={handleToggleWorkspaceStatus}
-              loadingWorkspace={loadingWorkspace}
-            />
+              loadingWorkspace={loadingWorkspace} />
           ) : (
             <div className="h-[600px] w-full grid place-content-center">
               <EmptyState message="No active workspaces found." />
@@ -457,12 +401,9 @@ export function WorkspaceManagement() {
         </TabsContent>
 
         <TabsContent value="inactive" className="space-y-4">
-          {filteredWorkspaces.filter((workspace) => !workspace.isActive)
-            .length > 0 ? (
+          {filteredWorkspaces.filter((workspace) => !workspace.isActive).length > 0 ? (
             <WorkspaceTable
-              workspaces={filteredWorkspaces.filter(
-                (workspace) => !workspace.isActive,
-              )}
+              workspaces={filteredWorkspaces.filter((workspace) => !workspace.isActive)}
               onToggleStatus={handleToggleWorkspaceStatus}
               loadingWorkspace={loadingWorkspace}
             />

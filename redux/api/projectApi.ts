@@ -50,6 +50,10 @@ export const projectsApi = projectApi.injectEndpoints({
             query: () => 'api/v1/deploy-service/get-build-history',
         }),
 
+        getServiceDeployment: builder.query<Service[], { workspaceName: string,size: number,page:number }>({
+            query: ({ workspaceName,size,page }) => `api/v1/deploy-service/${workspaceName}?size=${size}&page=${page}`,
+        }),
+
         getAllWorkSpaces: builder.query<Workspace, void>({
             query: () => 'api/v1/workspace/all',
         }),
@@ -78,10 +82,6 @@ export const projectsApi = projectApi.injectEndpoints({
 
         getWorkSpaceByUserName: builder.query<Workspace, { username: string }>({
             query: ({ username }) => `api/v1/workspace/by-user/${username}`,
-        }),
-
-        getServiceDeployment: builder.query<Service[], { workspaceName: string,size: number,page:number }>({
-            query: ({ workspaceName,size,page }) => `api/v1/deploy-service/${workspaceName}?size=${size}&page=${page}`,
         }),
 
         getSubWorkspaces: builder.query<Service[], { workspaceName: string,size: number,page:number }>({

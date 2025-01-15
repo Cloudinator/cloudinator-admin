@@ -49,15 +49,15 @@ export function UserManagement() {
     const [deleteUser] = useDeleteUserMutation();
 
     const filteredUsers = users
-    .filter((user: User) => {
-        const searchLower = searchTerm.toLowerCase();
-        return (
-            user.username.toLowerCase().includes(searchLower) ||
-            user.email.toLowerCase().includes(searchLower) ||
-            String(user.isEnabled).toLowerCase().includes(searchLower)
-        );
-    })
-    .sort((a: User, b: User) => a.username.localeCompare(b.username));
+        .filter((user: User) => {
+            const searchLower = searchTerm.toLowerCase();
+            return (
+                user.username.toLowerCase().includes(searchLower) ||
+                user.email.toLowerCase().includes(searchLower) ||
+                String(user.isEnabled).toLowerCase().includes(searchLower)
+            );
+        })
+        .sort((a: User, b: User) => a.username.localeCompare(b.username));
 
     const indexOfLastUser = currentPage * usersPerPage;
     const indexOfFirstUser = indexOfLastUser - usersPerPage;
@@ -230,40 +230,58 @@ export function UserManagement() {
                 <h1 className="text-4xl font-semibold tracking-tight text-white">
                     User Management{" "}
                     <span className="text-purple-200 font-bold hover:text-purple-300 transition-colors duration-300">
-                        
+
                     </span>
                     <span role="img" aria-label="wave" className="animate-wave">👨‍💻</span>
                 </h1>
             </div>
 
             <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-                <Card>
+                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-lg border border-gray-200 dark:border-purple-500/30 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 neon-glow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-purple-500 font-bold">Total Users</CardTitle>
-                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-purple-600 dark:text-purple-400 font-bold">
+                            Total Users
+                        </CardTitle>
+                        <UserCheck className="h-4 w-4 text-purple-600 dark:text-purple-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold">{users.length}</div>
-                        <Progress value={activePercentage} className="mt-2" />
-                        <p className="text-xs text-muted-foreground mt-2">{activePercentage.toFixed(1)}% active users</p>
+                        <div className="text-2xl font-bold text-gray-900 dark:text-white">
+                            {users.length}
+                        </div>
+                        <Progress
+                            value={activePercentage}
+                            className="mt-2 bg-gray-200 dark:bg-purple-900/50"
+                            style={{ backgroundColor: 'rgba(192, 132, 252, 0.1)' }}
+                        />
+                        <p className="text-xs text-gray-600 dark:text-purple-300 mt-2">
+                            {activePercentage.toFixed(1)}% active users
+                        </p>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-lg border border-gray-200 dark:border-green-500/30 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 neon-glow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-purple-500 font-bold">Active Users</CardTitle>
-                        <UserCheck className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-green-600 dark:text-green-400 font-bold">
+                            Active Users
+                        </CardTitle>
+                        <UserCheck className="h-4 w-4 text-green-600 dark:text-green-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-green-500">{activeUsers}</div>
+                        <div className="text-2xl font-bold text-green-600 dark:text-green-400">
+                            {activeUsers}
+                        </div>
                     </CardContent>
                 </Card>
-                <Card>
+                <Card className="bg-white/50 dark:bg-gray-900/50 backdrop-blur-lg border border-gray-200 dark:border-red-500/30 rounded-lg shadow-lg hover:shadow-xl transition-shadow duration-300 neon-glow">
                     <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                        <CardTitle className="text-sm font-medium text-purple-500 font-bold">Inactive Users</CardTitle>
-                        <UserMinus className="h-4 w-4 text-muted-foreground" />
+                        <CardTitle className="text-sm font-medium text-red-600 dark:text-red-400 font-bold">
+                            Inactive Users
+                        </CardTitle>
+                        <UserMinus className="h-4 w-4 text-red-600 dark:text-red-400" />
                     </CardHeader>
                     <CardContent>
-                        <div className="text-2xl font-bold text-red-500">{inactiveUsers}</div>
+                        <div className="text-2xl font-bold text-red-600 dark:text-red-400">
+                            {inactiveUsers}
+                        </div>
                     </CardContent>
                 </Card>
             </div>
@@ -376,32 +394,61 @@ export function UserManagement() {
                             </TableRow>
                         ) : (
                             currentUsers.map((user: User) => (
-                                <TableRow 
+                                <TableRow
                                     key={user.username}
                                     className="hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer"
                                     onClick={() => window.location.href = `/users/${user.username}`} // Make the row clickable
                                 >
                                     <TableCell className="font-medium">
                                         <div className="flex items-center">
-                                            <Avatar className="h-8 w-8 mr-2">
-                                                <AvatarImage src={user.profileImage} alt={user.username} />
-                                                <AvatarFallback>
+                                            <Avatar className="h-10 w-10 mr-3 border-2 border-purple-500 dark:border-purple-500/50 backdrop-blur-lg bg-white/50 dark:bg-gray-900/50 shadow-lg hover:shadow-xl transition-shadow duration-300 ">
+                                                <AvatarImage src={user.profileImage} alt={user.username} className="rounded-full" />
+                                                <AvatarFallback className="bg-gradient-to-br from-purple-500 to-indigo-500 text-white font-bold">
                                                     {user.username ? user.username.slice(0, 2).toUpperCase() : "US"}
                                                 </AvatarFallback>
                                             </Avatar>
-                                            {user.username}
+                                            <span className="text-gray-900 dark:text-white font-medium hover:text-purple-600 dark:hover:text-purple-400 transition-colors duration-300">
+                                                {user.username}
+                                            </span>
                                         </div>
                                     </TableCell>
-                                    <TableCell>{user.email}</TableCell>
+                                    <TableCell
+                                        className="group p-4 hover:bg-purple-50 dark:hover:bg-purple-900/20 transition-colors duration-300 cursor-pointer"
+                                        onClick={() => window.open(`https://mail.google.com/mail/?view=cm&fs=1&to=${user.email}`, "_blank")}
+                                    >
+                                        <div className="flex items-center space-x-2">
+                                            <span className="text-purple-600 dark:text-purple-400 group-hover:text-purple-700 dark:group-hover:text-purple-300 transition-colors duration-300">
+                                                {user.email}
+                                            </span>
+                                            <svg
+                                                xmlns="http://www.w3.org/2000/svg"
+                                                className="h-4 w-4 text-purple-600 dark:text-purple-400 opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+                                                fill="none"
+                                                viewBox="0 0 24 24"
+                                                stroke="currentColor"
+                                            >
+                                                <path
+                                                    strokeLinecap="round"
+                                                    strokeLinejoin="round"
+                                                    strokeWidth={2}
+                                                    d="M3 8l7.89 5.26a2 2 0 002.22 0L21 8M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"
+                                                />
+                                            </svg>
+                                        </div>
+                                    </TableCell>
                                     <TableCell>{user.roles ? user.roles.join(', ') : 'No roles'}</TableCell>
                                     <TableCell>
-                                        <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${user.isEnabled ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
-                                            }`}>
-                                            {user.isEnabled ? 'Active' : 'Inactive'}
+                                        <span
+                                            className={`inline-flex items-center rounded-full px-3 py-1 text-sm font-medium backdrop-blur-lg border ${user.isEnabled
+                                                    ? "bg-green-100/50 dark:bg-green-900/50 text-green-800 dark:text-green-200 border-green-500/30 dark:border-green-500/50 shadow-green-glow"
+                                                    : "bg-red-100/50 dark:bg-red-900/50 text-red-800 dark:text-red-200 border-red-500/30 dark:border-red-500/50 shadow-red-glow"
+                                                } transition-all duration-300 hover:scale-105`}
+                                        >
+                                            {user.isEnabled ? "Active" : "Inactive"}
                                         </span>
                                     </TableCell>
                                     <TableCell className="text-right">
-                                        
+
                                         {/* View Button */}
                                         <Button
                                             variant="ghost"

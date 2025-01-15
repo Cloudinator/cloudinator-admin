@@ -2,15 +2,35 @@
 
 import { Area, AreaChart as RechartsAreaChart, ResponsiveContainer, Tooltip, XAxis, YAxis } from "recharts"
 import {BuildAnalysisResponse} from "@/components/dashboard/DashboardComponent";
+import { Loader2 } from "lucide-react";
 
 
 type buildAnalysis = {
     buildAnalysis: BuildAnalysisResponse | undefined;
+    isLoading: boolean;
 }
 
-export function AreaChart({buildAnalysis}:buildAnalysis) {
+export function AreaChart({buildAnalysis, isLoading}:buildAnalysis) {
 
     console.log("area chart ",buildAnalysis);
+
+    // Loading State
+    if (isLoading) {
+        return (
+            <div className="flex items-center justify-center h-[300px]">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            </div>
+        );
+    }
+
+    // Error State
+    if (!buildAnalysis || buildAnalysis.length === 0) {
+        return (
+            <div className="flex items-center justify-center h-[600px] text-purple-500">
+                <Loader2 className="w-8 h-8 animate-spin text-purple-500" />
+            </div>
+        );
+    }
 
     return (
         <ResponsiveContainer width="100%" height="100%">
