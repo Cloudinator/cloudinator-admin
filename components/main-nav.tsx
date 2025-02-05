@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {LayoutDashboard, Plus, Users } from 'lucide-react';
+import {LayoutDashboard, MessageSquare, Plus, Users} from 'lucide-react';
 
 import { cn } from "@/lib/utils";
 import { Badge } from "@/components/ui/badge";
@@ -36,7 +36,7 @@ type Workspaces = Workspace[];
 export const navItems: NavItem[] = [
     { title: "Dashboard", href: "/dashboard", icon: LayoutDashboard, badge3: "-" },
     { title: "Workspace", href: "/workspace", icon: Plus, badge: "-" },
-    // { title: "Backup", href: "/backup", icon: MessageSquare },
+    { title: "Monitoring", href: "/monitoring", icon: MessageSquare },
     // { title: "Domain", href: "/domain", icon: Box },
     { title: "Users", href: "/users", icon: Users, badge2: "-" },
     // { title: "Settings", href: "/account", icon: Cog },
